@@ -4,10 +4,16 @@
 import pygame
 import time
 import random
-from gridModule import menu
+import boto3
+from leaderboard import Leaderboard
+import leaderboard
+from boto3.dynamodb.conditions import Key, Attr
+from botocore.exceptions import ClientError
 
 pygame.init()
 
+best = None
+curUsr = ''
 right = 0
 wrong = 0
 tries = 0
@@ -21,42 +27,6 @@ displayFont = pygame.font.SysFont("monospace", 30)
 
 w_width = 1000
 w_height = 600
-
-
-class leaderboard(object):
-    def __init__(self, game, type, win , width, height, x, y):
-        #game is to allow us to determine what game leaderboard we need to get
-        #type is either freind or global
-        self.win = win
-        self.width = width
-        self.height = height
-        self.cols = 2
-        self.rows = 5
-        self.x = x
-        self.y = y
-        self.text = []
-        pass
-
-    def setup(self):
-        self.grid = menu(self.win, self.width, self.height, self.cols, self.rows, self.showGrid, self.x, self.y)
-
-    def draw(self):
-        self.grid.draw((255, 255, 255))
-
-    def font(self, font, size):
-        self.grid.font(font, size)
-
-    def update(self):
-        self.text = []
-        self.display(self.win, self.width, self.height, self.cols, self.rows, self.showGrid, self.x, self.y)
-        pass
-
-    def getFriends(self):
-        pass
-
-    def getGlobal(self):
-        pass
-
 
 class button(object):
     def __init__(self, text, textSize, width, height, color):
@@ -127,7 +97,7 @@ def showLetter():
     win.blit(label, (random.randrange(100,w_width - 100 - label.get_width()), random.randrange(100,w_height-label.get_height())))
     pygame.display.update()
     return letter
-    
+
 def correct():
     global right
     right += 1
@@ -161,6 +131,10 @@ def startCount():
 def endScreen():
     global totalTime
     totalTime += 2.5 * wrong
+
+    if totalTime < best:
+        leaderboard.addHighscore(curUsr, 'quicktype', round(totalTime,2))
+    pygame.time.delay(2000)
     if tries == 26:
         loop = True
         while loop:
@@ -174,9 +148,26 @@ def showInfoScreen():
     global win
     pass
 
+#pass the string user name of the current user so that we can access their information
+def start(currentUser):
+    global win, curUsr, best
+    curUsr = currentUser
+    session = boto3.resource('dynamodb',
+                             aws_access_key_id='AKIAIOPUXE2QS7QN2MMQ',
+                             aws_secret_access_key='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',
+                             region_name="ca-central-1"
+                             )
+    table = session.Table('highscores')
 
-def start():
-    global win
+    try:
+        response = table.get_item(
+            Key={
+                'peopleid':curUsr
+            }
+        )
+        best = response['Item']['quicktype']
+    except:
+        best = 10000000
 
     win = pygame.display.set_mode((w_width, w_height))
     pygame.display.set_caption('Quick Type')
@@ -186,9 +177,11 @@ def start():
     infoBtn = button('Learn to Play', 30, 250, 50, (40,40,40))
     btns = [startBtn, infoBtn]
     run = True
+    globalTable = Leaderboard(curUsr, 'quicktype', 'global', win, 300, 400, 100, 100)
     while run:
-        pygame.time.delay(100)
+        pygame.time.delay(50)
         win.fill((0,0,0))
+        globalTable.draw()
         win.blit(title, (w_width / 2 - title.get_width() / 2, 10))
         startBtn.draw(win, 175, w_height - 80)
         infoBtn.draw(win, w_width - 425, w_height - 80)
@@ -264,4 +257,4 @@ def main():
     pygame.quit()
 
 
-start()
+start('nickiscool123')

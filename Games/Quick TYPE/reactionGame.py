@@ -190,10 +190,12 @@ def start(currentUser):
     btns = [startBtn, infoBtn]
     run = True
     globalTable = Leaderboard(curUsr, 'quicktype', 'global', win, 300, 370, 150, 130)
+    friendTable = Leaderboard(curUsr, 'quicktype', 'friend', win, 300, 370, 550, 130)
     while run:
         pygame.time.delay(50)
         win.fill(bg)
         globalTable.draw()
+        friendTable.draw()
         win.blit(title, (w_width / 2 - title.get_width() / 2, 10))
         startBtn.draw(win, 175, w_height - 80)
         infoBtn.draw(win, w_width - 425, w_height - 80)

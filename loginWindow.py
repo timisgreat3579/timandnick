@@ -216,7 +216,7 @@ class registerWindow(object):
                 'email': self.email,
                 'code': 0, #change this to 'code' to set up email validation !!!!!!
                 'datetime':str(datetime.now()),
-                'friends':[]
+                'friends':[self.usr]
                 }
         )
 

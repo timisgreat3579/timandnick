@@ -270,9 +270,12 @@ class Leaderboard(object):
 def addHighscore(usr, game, score):
     global table, session, window
     table = session.Table('highscores')
-    response = table.put_item(
-        Item={
+    response = table.update_item(
+        Key={
             'peopleid': usr,
-            game: decimal.Decimal(str(score))
+        },
+        UpdateExpression="set " + game + " = :r",
+        ExpressionAttributeValues={
+            ':r': decimal.Decimal(str(score)),
         }
     )

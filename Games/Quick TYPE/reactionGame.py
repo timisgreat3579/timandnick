@@ -133,9 +133,7 @@ def endScreen():
     global totalTime, best
     totalTime += 2.5 * wrong
 
-    if totalTime < best:
-        leaderboard.addHighscore(curUsr, 'quicktype', round(totalTime,2))
-        best = round(totalTime,2)
+
     if tries == 26:
         win.fill(bg)
         pygame.display.update()
@@ -147,6 +145,9 @@ def endScreen():
         win.blit(text, (w_width/2 - text.get_width()/2, w_height - 40))
         pygame.display.update()
         loop = True
+        if totalTime < best:
+            leaderboard.addHighscore(curUsr, 'quicktype', round(totalTime, 2))
+            best = round(totalTime, 2)
         while loop:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

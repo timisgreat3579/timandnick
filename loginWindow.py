@@ -332,7 +332,7 @@ class myDialog:
         self.top1.destroy()
         self.code = var
 
-
+#Initialization function for module, declared global variables and logs into database
 def init():
     global table, session, window
     session = boto3.resource('dynamodb',
@@ -373,6 +373,7 @@ def printTable():
     for i in response['Items']:
         print(i)
 
+runCreate()
 
 
 

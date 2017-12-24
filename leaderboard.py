@@ -190,13 +190,11 @@ class Leaderboard(object):
 
             for x in li:
                 name = x
-                print(x)
                 table = session.Table('highscores')
                 response = table.query(
                     KeyConditionExpression=Key('peopleid').eq(x)
                 )
                 for i in response['Items']:
-                    print(i)
                     score = i[self.game]
                 allScores.append(score)
                 if len(topScore) < self.rows:

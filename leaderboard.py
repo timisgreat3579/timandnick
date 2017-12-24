@@ -177,27 +177,36 @@ class Leaderboard(object):
                 }
 
             )
-
             topScore = []
             topName = []
-            for i in response['Item']:
-                for x in i['friends']:
-                    name = x
-                    table = session.Table('highscores')
-                    response = table.get_item(
-                        Key={
-                            'peopleid':x
-                        }
-                    )
-                    score = response['Item'][self.game]
-                    if len(topScore) < self.rows:
-                        topScore.append(score)
-                        topName.append(name)
-                    else:
-                        if score > min(topScore):
-                            ind = topScore.index(min(topScore))
-                            topScore[ind] = score
-                            topName[ind] = name
+            allScores=[]
+
+            response = table.query(
+                KeyConditionExpression=Key('peopleid').eq(self.usr)
+            )
+
+            for i in response['Items']:
+                li = i['friends']
+
+            for x in li:
+                name = x
+                print(x)
+                table = session.Table('highscores')
+                response = table.query(
+                    KeyConditionExpression=Key('peopleid').eq(x)
+                )
+                for i in response['Items']:
+                    print(i)
+                    score = i[self.game]
+                allScores.append(score)
+                if len(topScore) < self.rows:
+                    topScore.append(score)
+                    topName.append(name)
+                else:
+                    if score > min(topScore):
+                        ind = topScore.index(min(topScore))
+                        topScore[ind] = score
+                        topName[ind] = name
 
         self.grid = menu(self.win, self.width, self.height, self.cols, self.rows+2, self.showGrid, self.x, self.y)
         nList = ['Rank', 'User', 'Score']
@@ -234,6 +243,7 @@ class Leaderboard(object):
             nList.append('')
             nList.append('')
 
+        table = session.Table('highscores')
         response = table.get_item(
             Key={
                 'peopleid':self.usr

@@ -12,6 +12,7 @@ from botocore.exceptions import ClientError
 
 pygame.init()
 
+bg = (32,32,32)
 best = None
 curUsr = ''
 right = 0
@@ -73,7 +74,7 @@ class button(object):
 
 def update():
     global time1, totalTime
-    pygame.draw.rect(win, (0,0,0), (0,0,w_width,100))
+    pygame.draw.rect(win, bg, (0,0,w_width,100))
     totalTime = time.time() - time1
     label = displayFont.render('Time: ' + str(round(totalTime,2)),1,(255,255,255))
     win.blit(label,(10,10))
@@ -111,17 +112,17 @@ def generateKey():
     return chr(65 + r)
 
 def startCount():
-    win.fill((0,0,0))
+    win.fill(bg)
     label = myfont.render('3',1,(255,255,255))
     win.blit(label, (w_width/2 - label.get_width()/2,w_height/2-label.get_height()/2))
     pygame.display.update()
     pygame.time.delay(1000)
-    win.fill((0,0,0))
+    win.fill(bg)
     label = myfont.render('2',1,(255,255,255))
     win.blit(label, (w_width/2 - label.get_width()/2,w_height/2-label.get_height()/2))
     pygame.display.update()
     pygame.time.delay(1000)
-    win.fill((0,0,0))
+    win.fill(bg)
     label = myfont.render('1',1,(255,255,255))
     win.blit(label, (w_width/2 - label.get_width()/2,w_height/2-label.get_height()/2))
     pygame.display.update()
@@ -129,19 +130,30 @@ def startCount():
 
 
 def endScreen():
-    global totalTime
+    global totalTime, best
     totalTime += 2.5 * wrong
 
     if totalTime < best:
         leaderboard.addHighscore(curUsr, 'quicktype', round(totalTime,2))
-    pygame.time.delay(2000)
+        best = round(totalTime,2)
     if tries == 26:
+        win.fill(bg)
+        pygame.display.update()
+        text = startfont1.render('Time: ' + str(round(totalTime,2)),1, (255,255,255))
+        win.blit(text, (w_width/2 - text.get_width()/2, w_height/2 - text.get_height()/2 - 30))
+        text = startfont.render('Best: ' + str(best),1, (255,255,255))
+        win.blit(text, (w_width/2 - text.get_width()/2, w_height/2 - text.get_height()/2 + 45))
+        text = displayFont.render('Press any Key To Continue',1, (255,255,255))
+        win.blit(text, (w_width/2 - text.get_width()/2, w_height - 40))
+        pygame.display.update()
         loop = True
         while loop:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     loop = False
                     pygame.quit()
+                if event.type == pygame.KEYDOWN:
+                    loop = False
 
 
 def showInfoScreen():
@@ -177,10 +189,10 @@ def start(currentUser):
     infoBtn = button('Learn to Play', 30, 250, 50, (40,40,40))
     btns = [startBtn, infoBtn]
     run = True
-    globalTable = Leaderboard(curUsr, 'quicktype', 'global', win, 300, 400, 100, 100)
+    globalTable = Leaderboard(curUsr, 'quicktype', 'global', win, 300, 370, 150, 130)
     while run:
         pygame.time.delay(50)
-        win.fill((0,0,0))
+        win.fill(bg)
         globalTable.draw()
         win.blit(title, (w_width / 2 - title.get_width() / 2, 10))
         startBtn.draw(win, 175, w_height - 80)
@@ -204,7 +216,7 @@ def start(currentUser):
                     showInfoScreen()
         pygame.display.update()
 
-    win.fill((0,0,0))
+    win.fill(bg)
     pygame.display.update()
     main()
 
@@ -232,7 +244,7 @@ def main():
                 time1 = time.time()
                 while tries < 26:
                     tries += 1
-                    win.fill((0,0,0))
+                    win.fill(bg)
                     correctKey = showLetter()
                     gameLoop = True
                     while gameLoop:
@@ -241,6 +253,7 @@ def main():
                                 gameLoop = False
                                 tries = 100
                                 play = False
+                                pygame.quit()
                             if event.type == pygame.KEYDOWN:
                                 pressed = pygame.key.get_pressed()
                                 for i in range(len(pressed)):
@@ -254,7 +267,8 @@ def main():
                                 gameLoop = False
                         update()
                 endScreen()
-    pygame.quit()
+                play = False
+                start(curUsr)
 
 
-start('nickiscool123')
+start('Noah')

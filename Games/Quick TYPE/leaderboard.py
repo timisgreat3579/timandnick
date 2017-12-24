@@ -85,6 +85,8 @@ class menu(grid):
             for s in spots:
                 if h == 0:
                     s.fontsize = 35
+                if h == len(self.getGrid())- 1:
+                    s.color = (255,0,0)
                 s.showText(self.screen, textList[c])
                 c += 1
             h += 1
@@ -96,6 +98,7 @@ class textObject():
     def __init__(self, i, j, width, height, cols, rows, startx=0, starty=0, fontsize=30):
         self.fontsize = fontsize
         self.font = pygame.font.SysFont('freesansbold', fontsize)
+        self.color = (255,255,255)
         self.col = i  # The column of the current instance in the grid
         self.row = j  # The row of the current instance in the grid
         self.rows = rows  # Total amount of rows
@@ -109,11 +112,11 @@ class textObject():
     def showText(self, win, txt):  # This will render and draw the text on the screen
         self.text = txt
 
-        text = self.font.render(self.text, 1, (255, 255, 255))
+        text = self.font.render(self.text, 1, self.color)
         while text.get_width() > self.w - 5:
             self.fontsize -= 1
             self.font = pygame.font.SysFont('freesansbold', self.fontsize)
-            text = self.font.render(self.text, 1, (255, 255, 255))
+            text = self.font.render(self.text, 1, self.color)
         win.blit(text, (self.x + (self.w / 2 - text.get_width() / 2), self.y + (
                 self.h / 2 - text.get_height() / 2)))  # This will make sure the text is center in the screen.
 
@@ -152,8 +155,10 @@ class Leaderboard(object):
 
             topScore = []
             topName = []
+            allScores = []
             for i in response['Items']:
                 score = i[self.game]
+                allScores.append(score)
                 name = i['peopleid']
                 if len(topScore) < self.rows:
                     topScore.append(score)
@@ -194,7 +199,7 @@ class Leaderboard(object):
                             topScore[ind] = score
                             topName[ind] = name
 
-        self.grid = menu(self.win, self.width, self.height, self.cols, self.rows+1, self.showGrid, self.x, self.y)
+        self.grid = menu(self.win, self.width, self.height, self.cols, self.rows+2, self.showGrid, self.x, self.y)
         nList = ['Rank', 'User', 'Score']
 
         #Bubble sort the names
@@ -228,6 +233,16 @@ class Leaderboard(object):
             nList.append('')
             nList.append('')
             nList.append('')
+
+        response = table.get_item(
+            Key={
+                'peopleid':self.usr
+            }
+        )
+        rank = sorted(allScores)
+        nList.append(str(rank.index(response['Item'][self.game])+1))
+        nList.append(self.usr)
+        nList.append(str(response['Item'][self.game]))
         self.text = nList
 
     #Call this method to display the leaderboard on the screen

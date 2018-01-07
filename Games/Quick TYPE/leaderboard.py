@@ -255,6 +255,14 @@ class Leaderboard(object):
 
     #Call this method to display the leaderboard on the screen
     def draw(self):
+        font = pygame.font.SysFont('freesansbold', 25)
+        if self.type == 'global':
+            label = font.render('Global Leaderboard',1,(255,255,255))
+        else:
+            label = font.render('Friend Leaderboard', 1, (255, 255, 255))
+        self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
+        pygame.draw.rect(self.grid.screen,(255,255,255), (self.x, self.y -30,self.width, 30), 1)
+
         try:
             self.grid.draw((255, 255, 255))
             self.grid.setText(self.text)

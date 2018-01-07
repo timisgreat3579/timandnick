@@ -139,7 +139,7 @@ def endScreen():
         pygame.display.update()
         text = startfont1.render('Time: ' + str(round(totalTime,2)),1, (255,255,255))
         win.blit(text, (w_width/2 - text.get_width()/2, w_height/2 - text.get_height()/2 - 30))
-        text = startfont.render('Best: ' + str(best),1, (255,255,255))
+        text = startfont.render('Previous Best: ' + str(best),1, (255,255,255))
         win.blit(text, (w_width/2 - text.get_width()/2, w_height/2 - text.get_height()/2 + 45))
         text = displayFont.render('Press any Key To Continue',1, (255,255,255))
         win.blit(text, (w_width/2 - text.get_width()/2, w_height - 40))
@@ -159,6 +159,51 @@ def endScreen():
 
 def showInfoScreen():
     global win
+    win.fill(bg)
+    label = startfont1.render('How to Play',1,(255,255,255))
+    win.blit(label, (w_width/2 - label.get_width()/2, 20))
+    backBtn = button('< Back', 30, 130, 50, (40,40,40))
+    backBtn.draw(win, 15, w_height-65)
+
+    l = displayFont.render('In this game your reflexes will be tested, Your mind', 1, (255,255,255))
+    win.blit(l, (20, 120))
+    l = displayFont.render('will be exercised and your fingers will move faster ', 1, (255,255,255))
+    win.blit(l, (20, 160))
+    l = displayFont.render('than ever before. Once you hit start a timer will ', 1, (255,255,255))
+    win.blit(l, (20, 200))
+    l = displayFont.render('start and you will see letters appear in random', 1, (255,255,255))
+    win.blit(l, (20, 240))
+    l = displayFont.render('positions on the screen. You have to click the', 1, (255,255,255))
+    win.blit(l, (20, 280))
+    l = displayFont.render('cooresponding key on your keyboard for the next letter', 1, (255,255,255))
+    win.blit(l, (20, 320))
+    l = displayFont.render('to appear. The goal is to complete the sequence of 26', 1, (255,255,255))
+    win.blit(l, (20, 360))
+    l = displayFont.render('letters as fast as possible. But be careful as if you', 1, (255,255,255))
+    win.blit(l, (20, 400))
+    l = displayFont.render('hit the wrong key you will have 2.5seconds added to', 1, (255, 255, 255))
+    win.blit(l, (20, 440))
+    l = displayFont.render('your final time. Goodluck!', 1, (255, 255, 255))
+    win.blit(l, (20, 480))
+    pygame.display.update()
+
+    run = True
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+            if event.type == pygame.MOUSEMOTION:
+                pos = pygame.mouse.get_pos()
+                if backBtn.isMouseOver(pos):
+                    backBtn.hover(win)
+                else:
+                    backBtn.update(win)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if backBtn.isMouseOver(pos):
+                    run = False
+
     pass
 
 #pass the string user name of the current user so that we can access their information
@@ -197,7 +242,7 @@ def start(currentUser):
         win.fill(bg)
         globalTable.draw()
         friendTable.draw()
-        win.blit(title, (w_width / 2 - title.get_width() / 2, 10))
+        win.blit(title, (w_width / 2 - title.get_width() / 2, 0))
         startBtn.draw(win, 175, w_height - 80)
         infoBtn.draw(win, w_width - 425, w_height - 80)
         for event in pygame.event.get():
@@ -238,7 +283,7 @@ def main():
             if event.type == pygame.QUIT:
                 play = False
             if event.type == pygame.KEYDOWN:
-                startCount()
+                #startCount()
                 update()
                 totalTime = 0
                 tries = 0
@@ -263,7 +308,7 @@ def main():
                                     if pressed[i] == 1:
                                         usrPressed = pygame.key.name(i)
 
-                                if usrPressed.lower() == correctKey.lower():
+                                if usrPressed.lower() == correctKey.lower() or usrPressed == correctKey:
                                     correct()
                                 else:
                                     incorrect()
@@ -273,5 +318,5 @@ def main():
                 play = False
                 start(curUsr)
 
-
+# Call the start function with an argument of the string name of the user to start the game
 start('Noah')

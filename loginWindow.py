@@ -208,15 +208,24 @@ class registerWindow(object):
         return code
 
 
-    def addToTable(self, code):
-        response = table.put_item(
+    def addToTable(self, code=0):
+        respons = table.put_item(
            Item={
                 'peopleid': self.user,
                 'password': register.hash_password(self.passw),
                 'email': self.email,
                 'code': 0, #change this to 'code' to set up email validation !!!!!!
                 'datetime':str(datetime.now()),
-                'friends':[self.usr]
+                'friends':[self.user]
+                }
+        )
+        tabl = session.Table('highscores')
+
+        respons = tabl.put_item(
+           Item={
+                'peopleid': self.user,
+                'quicktype': -1,
+                'integerrecall':0
                 }
         )
 

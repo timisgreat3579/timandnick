@@ -315,4 +315,4 @@ def main():
                 play = False
                 start(curUsr)
 
-start('noah123')
+start('nickiscool123')

@@ -44,9 +44,9 @@ class grid(object):
         for i in range(self.cols):
             y = self.starty + self.height
             if i > 0:
-                x += (self.width / self.cols)
+                x += round(self.width / self.cols)
             for j in range(self.rows):
-                y -= self.height / self.rows
+                y -= round(self.height / self.rows)
                 pygame.draw.rect(self.screen, lineColor, (x, y, self.width / self.cols, self.height / self.rows), 1)
 
     def clicked(self, pos):  # Return the position in the grid that user clicked on
@@ -174,23 +174,16 @@ class Leaderboard(object):
                     print('no highscore exsists')
 
         else:
-            table = session.Table('people')
-            response = table.get_item(
-                Key={
-                    'peopleid':self.usr
-                }
-
-            )
             topScore = []
             topName = []
             allScores=[]
-
+            table = session.Table('people')
             response = table.query(
                 KeyConditionExpression=Key('peopleid').eq(self.usr)
             )
+
             li = []
             for i in response['Items']:
-                print('run')
                 li = i['friends']
 
             for x in li:
@@ -259,6 +252,7 @@ class Leaderboard(object):
             pass
 
         rank = sorted(allScores)
+        print(rank)
         if response['Item'][self.game] != 0:
             nList.append(str(rank.index(response['Item'][self.game])+1))
             nList.append(self.usr)
@@ -285,6 +279,10 @@ class Leaderboard(object):
         except:
             print('Setup function has not been called yet')
 
+    def update(self):
+        self.setup()
+        self.draw()
+    
     #call this method to change the font
     def font(self, font, size):
         self.grid.font(font, size)

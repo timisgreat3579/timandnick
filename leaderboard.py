@@ -157,17 +157,21 @@ class Leaderboard(object):
             topName = []
             allScores = []
             for i in response['Items']:
-                score = i[self.game]
-                allScores.append(score)
-                name = i['peopleid']
-                if len(topScore) < self.rows:
-                    topScore.append(score)
-                    topName.append(name)
-                else:
-                    if score > min(topScore):
-                        ind = topScore.index(min(topScore))
-                        topScore[ind] = score
-                        topName[ind] = name
+                try:
+                    score = i[self.game]
+                    if score != 0:
+                        allScores.append(score)
+                        name = i['peopleid']
+                        if len(topScore) < self.rows:
+                            topScore.append(score)
+                            topName.append(name)
+                        else:
+                            if score > min(topScore):
+                                ind = topScore.index(min(topScore))
+                                topScore[ind] = score
+                                topName[ind] = name
+                except:
+                    print('no highscore exsists')
 
         else:
             table = session.Table('people')
@@ -184,8 +188,9 @@ class Leaderboard(object):
             response = table.query(
                 KeyConditionExpression=Key('peopleid').eq(self.usr)
             )
-
+            li = []
             for i in response['Items']:
+                print('run')
                 li = i['friends']
 
             for x in li:
@@ -194,17 +199,19 @@ class Leaderboard(object):
                 response = table.query(
                     KeyConditionExpression=Key('peopleid').eq(x)
                 )
+
                 for i in response['Items']:
                     score = i[self.game]
-                allScores.append(score)
-                if len(topScore) < self.rows:
-                    topScore.append(score)
-                    topName.append(name)
-                else:
-                    if score > min(topScore):
-                        ind = topScore.index(min(topScore))
-                        topScore[ind] = score
-                        topName[ind] = name
+                if score != 0:
+                    allScores.append(score)
+                    if len(topScore) < self.rows:
+                        topScore.append(score)
+                        topName.append(name)
+                    else:
+                        if score > min(topScore):
+                            ind = topScore.index(min(topScore))
+                            topScore[ind] = score
+                            topName[ind] = name
 
         self.grid = menu(self.win, self.width, self.height, self.cols, self.rows+2, self.showGrid, self.x, self.y)
         nList = ['Rank', 'User', 'Score']
@@ -242,19 +249,36 @@ class Leaderboard(object):
             nList.append('')
 
         table = session.Table('highscores')
-        response = table.get_item(
-            Key={
-                'peopleid':self.usr
-            }
-        )
+        try:
+            response = table.get_item(
+                Key={
+                    'peopleid':self.usr
+                }
+            )
+        except:
+            pass
+
         rank = sorted(allScores)
-        nList.append(str(rank.index(response['Item'][self.game])+1))
-        nList.append(self.usr)
-        nList.append(str(response['Item'][self.game]))
+        if response['Item'][self.game] != 0:
+            nList.append(str(rank.index(response['Item'][self.game])+1))
+            nList.append(self.usr)
+            nList.append(str(response['Item'][self.game]))
+        else:
+            nList.append('-')
+            nList.append(self.usr)
+            nList.append('None')
         self.text = nList
 
     #Call this method to display the leaderboard on the screen
     def draw(self):
+        font = pygame.font.SysFont('freesansbold', 25)
+        if self.type == 'global':
+            label = font.render('Global Leaderboard',1,(255,255,255))
+        else:
+            label = font.render('Friend Leaderboard', 1, (255, 255, 255))
+        self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
+        pygame.draw.rect(self.grid.screen,(255,255,255), (self.x, self.y -30,self.width, 30), 1)
+
         try:
             self.grid.draw((255, 255, 255))
             self.grid.setText(self.text)
@@ -270,9 +294,12 @@ class Leaderboard(object):
 def addHighscore(usr, game, score):
     global table, session, window
     table = session.Table('highscores')
-    response = table.put_item(
-        Item={
+    response = table.update_item(
+        Key={
             'peopleid': usr,
-            game: decimal.Decimal(str(score))
+        },
+        UpdateExpression="set " + game + " = :r",
+        ExpressionAttributeValues={
+            ':r': decimal.Decimal(str(score)),
         }
     )

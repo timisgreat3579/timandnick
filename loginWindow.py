@@ -98,7 +98,9 @@ class loginWindow(object):
                                  'password': register.hash_password(self.passw),
                                  'email': email,
                                  'code': 0,
-                                 'datetime':str(datetime.now())
+                                 'datetime':str(datetime.now()),
+                                 'friends':[],
+                                 'requests':[]
                              }
                          )
 
@@ -224,9 +226,32 @@ class registerWindow(object):
         respons = tabl.put_item(
            Item={
                 'peopleid': self.user,
-                'quicktype': -1,
-                'integerrecall':0
+                'quicktype': 0,
+                'integerrecall':0,
+                'golf':0
                 }
+        )
+        
+        tabl = session.Table('playtime')
+
+        respons = tabl.put_item(
+            Item={
+                'peopleid': self.user,
+                'quicktype':0,
+                'integerrecall':0,
+                'golf':0
+                }
+        )
+        
+        tabl = session.Table('games_played')
+
+        respons = tabl.put_item(
+            Item={
+                'peopleid': self.user,
+                'quicktype':0,
+                'integerrecall':0,
+                'golf':0
+            }
         )
 
     def checkIfUsername(self, username):

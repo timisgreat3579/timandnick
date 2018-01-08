@@ -285,6 +285,10 @@ class Leaderboard(object):
         except:
             print('Setup function has not been called yet')
 
+    def update(self):
+        self.update()
+        self.draw()
+
     #call this method to change the font
     def font(self, font, size):
         self.grid.font(font, size)

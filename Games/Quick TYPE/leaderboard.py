@@ -250,9 +250,12 @@ class Leaderboard(object):
             )
         except:
             pass
-
-        rank = sorted(allScores)
-        print(rank)
+        if self.game == 'quicktype':
+            rank = sorted(allScores)
+        else:
+            rank = sorted(allScores)
+            rank = rank[-1::-1]
+            
         if response['Item'][self.game] != 0:
             nList.append(str(rank.index(response['Item'][self.game])+1))
             nList.append(self.usr)
@@ -287,6 +290,44 @@ class Leaderboard(object):
     def font(self, font, size):
         self.grid.font(font, size)
 
+
+def addTimePlayed(usr, game, ntime):
+    global session, window
+    table = session.Table('playtime')
+    response = table.get_item(
+        Key={
+            'peopleid': usr
+        }
+    )
+    time = response['Item'][game]
+    response = table.update_item(
+        Key={
+            'peopleid':usr
+        },
+        UpdateExpression="set " + game + " = :r",
+        ExpressionAttributeValues={
+            ':r': decimal.Decimal(str(time + decimal.Decimal(ntime))),
+        }
+    )
+
+def addGamesPlayed(usr, game):
+    global session, window
+    table = session.Table('games_played')
+    response = table.get_item(
+        Key={
+            'peopleid': usr
+        }
+    )
+    games = response['Item'][game]
+    response = table.update_item(
+        Key={
+            'peopleid':usr
+        },
+        UpdateExpression="set " + game + " = :r",
+        ExpressionAttributeValues={
+            ':r': decimal.Decimal(str(games + 1)),
+        }
+    )
 
 
 def addHighscore(usr, game, score):

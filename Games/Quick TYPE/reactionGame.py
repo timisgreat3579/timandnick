@@ -145,6 +145,8 @@ def endScreen():
         win.blit(text, (w_width/2 - text.get_width()/2, w_height - 40))
         pygame.display.update()
         loop = True
+        leaderboard.addTimePlayed(curUsr, 'quicktype', round(totalTime, 2))
+        leaderboard.addGamesPlayed(curUsr, 'quicktype')
         if totalTime < best:
             leaderboard.addHighscore(curUsr, 'quicktype', round(totalTime, 2))
             best = round(totalTime, 2)

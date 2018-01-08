@@ -174,23 +174,16 @@ class Leaderboard(object):
                     print('no highscore exsists')
 
         else:
-            table = session.Table('people')
-            response = table.get_item(
-                Key={
-                    'peopleid':self.usr
-                }
-
-            )
             topScore = []
             topName = []
             allScores=[]
-
+            table = session.Table('people')
             response = table.query(
                 KeyConditionExpression=Key('peopleid').eq(self.usr)
             )
+
             li = []
             for i in response['Items']:
-                print('run')
                 li = i['friends']
 
             for x in li:
@@ -259,6 +252,7 @@ class Leaderboard(object):
             pass
 
         rank = sorted(allScores)
+        print(rank)
         if response['Item'][self.game] != 0:
             nList.append(str(rank.index(response['Item'][self.game])+1))
             nList.append(self.usr)

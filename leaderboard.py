@@ -286,7 +286,7 @@ class Leaderboard(object):
             print('Setup function has not been called yet')
 
     def update(self):
-        self.update()
+        self.setup()
         self.draw()
 
     #call this method to change the font

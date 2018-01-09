@@ -126,7 +126,8 @@ class textObject():
 
 #This leaderboard class will find the top scores of each users freinds or the top global scores for a given game
 class Leaderboard(object):
-    def __init__(self, usr, game, type, win , width, height, x, y):
+    def __init__(self, usr, game, type, win , width, height, x, y, extra=False):
+        #The extra parameter will add an extra two columns, (play time and games played)
         #game parameter is to allow us to determine what game leaderboard we need to get
         #type is either freind or global
         #example use: quickTypeHighscores = leaderboard('quicktype', 'freind', win, 400, 300, 45, 45)
@@ -141,6 +142,9 @@ class Leaderboard(object):
         self.rows = 5 # this will show top 5, if you want to make it show more change this number by calling the changeRows method
         self.x = x
         self.y = y
+        self.extra = extra
+        if self.extra:
+            self.cols = 5
         self.text = []
         self.setup()
 
@@ -207,8 +211,11 @@ class Leaderboard(object):
                             topName[ind] = name
 
         self.grid = menu(self.win, self.width, self.height, self.cols, self.rows+2, self.showGrid, self.x, self.y)
-        nList = ['Rank', 'User', 'Score']
-
+        if not(self.extra):
+            nList = ['Rank', 'User', 'Score']
+        else:
+            nList = ['Rank', 'User', 'Score', 'Time Played', 'Games Played']
+            
         #Bubble sort the names
         if self.game == 'quicktype':
             for passnum in range(len(topScore) - 1, 0, -1):
@@ -230,16 +237,39 @@ class Leaderboard(object):
                         temp = topName[i]
                         topName[i] = topName[i + 1]
                         topName[i + 1] = temp
+                        
+        if not(self.extra):
+            for x in range(len(topScore)):
+                nList.append(str(x + 1))
+                nList.append(str(topName[x]))
+                nList.append(str(topScore[x]))
+        else:
+            for x in range(len(topScore)):
+                nList.append(str(x + 1))
+                nList.append(str(topName[x]))
+                nList.append(str(topScore[x]))
+                table = session.Table('playtime')
+                response = table.get_item(
+                    Key={
+                        'peopleid':topName[x]
+                    }
+                )
+                nList.append(str(response['Item'][self.game]))
 
-        for x in range(len(topScore)):
-            nList.append(str(x + 1))
-            nList.append(str(topName[x]))
-            nList.append(str(topScore[x]))
+                table = session.Table('games_played')
+                response = table.get_item(
+                    Key={
+                        'peopleid':topName[x]
+                    }
+                )
+                nList.append(str(response['Item'][self.game]))
 
         while len(nList) < (self.rows + 1) * self.cols:
             nList.append('')
             nList.append('')
             nList.append('')
+        if self.cols == 5:
+            nList = nList[:-1]        
 
         table = session.Table('highscores')
         try:
@@ -249,7 +279,9 @@ class Leaderboard(object):
                 }
             )
         except:
+            print('error')
             pass
+        
         if self.game == 'quicktype':
             rank = sorted(allScores)
         else:
@@ -259,6 +291,21 @@ class Leaderboard(object):
         if response['Item'][self.game] != 0:
             nList.append(str(rank.index(response['Item'][self.game])+1))
             nList.append(self.usr)
+            nList.append(str(response['Item'][self.game]))
+            table = session.Table('playtime')
+            response = table.get_item(
+                Key={
+                    'peopleid':self.usr
+                }
+            )
+            nList.append(str(response['Item'][self.game]))
+
+            table = session.Table('games_played')
+            response = table.get_item(
+                Key={
+                    'peopleid':self.usr
+                }
+            )
             nList.append(str(response['Item'][self.game]))
         else:
             nList.append('-')
@@ -276,11 +323,9 @@ class Leaderboard(object):
         self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
         pygame.draw.rect(self.grid.screen,(255,255,255), (self.x, self.y -30,self.width, 30), 1)
 
-        try:
-            self.grid.draw((255, 255, 255))
-            self.grid.setText(self.text)
-        except:
-            print('Setup function has not been called yet')
+        
+        self.grid.draw((255, 255, 255))
+        self.grid.setText(self.text)
 
     def update(self):
         self.setup()
@@ -293,6 +338,8 @@ class Leaderboard(object):
 
 def addTimePlayed(usr, game, ntime):
     global session, window
+    ntime = round(ntime/60,1)
+    print(ntime)
     table = session.Table('playtime')
     response = table.get_item(
         Key={

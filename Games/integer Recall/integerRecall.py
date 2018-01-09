@@ -280,7 +280,7 @@ def main():
                                             usrPressed += pygame.key.name(i)
                                         if pygame.key.name(i) == 'backspace':
                                             usrPressed = usrPressed[:-1]
-                                        if pygame.key.name(i) == 'enter':
+                                        if pygame.key.name(i) == 'return':
                                             if usrPressed == seq:
                                                 score += (lvl // 2) * 10
                                                 gameLoop = False

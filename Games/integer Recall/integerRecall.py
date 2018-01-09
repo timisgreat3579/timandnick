@@ -2,10 +2,14 @@ import pygame
 import time
 import random
 import boto3
-from leaderboard import Leaderboard
-import leaderboard
 from boto3.dynamodb.conditions import Key, Attr
 from botocore.exceptions import ClientError
+import sys, os.path
+leader_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+leader_dir = os.path.abspath(os.path.join(leader_dir, '..'))
+sys.path.append(leader_dir)
+import leaderboard
+from leaderboard import Leaderboard
 
 bg = (0,51,102)
 best = None

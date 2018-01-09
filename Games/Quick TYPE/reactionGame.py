@@ -5,15 +5,19 @@ import pygame
 import time
 import random
 import boto3
-from leaderboard import Leaderboard
-import leaderboard
 from boto3.dynamodb.conditions import Key, Attr
 from botocore.exceptions import ClientError
+import sys, os.path
+leader_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+leader_dir = os.path.abspath(os.path.join(leader_dir, '..'))
+sys.path.append(leader_dir)
+import leaderboard
+from leaderboard import Leaderboard
 
 pygame.init()
 
 bg = (32,32,32)
-best = None
+best = 10000
 curUsr = ''
 right = 0
 wrong = 0
@@ -133,7 +137,6 @@ def endScreen():
     global totalTime, best
     totalTime += 2.5 * wrong
 
-
     if tries == 26:
         win.fill(bg)
         pygame.display.update()
@@ -147,6 +150,9 @@ def endScreen():
         loop = True
         leaderboard.addTimePlayed(curUsr, 'quicktype', round(totalTime, 2))
         leaderboard.addGamesPlayed(curUsr, 'quicktype')
+        if best == 0:
+            best = 1000000
+
         if totalTime < best:
             leaderboard.addHighscore(curUsr, 'quicktype', round(totalTime, 2))
             best = round(totalTime, 2)
@@ -321,4 +327,4 @@ def main():
                 start(curUsr)
 
 # Call the start function with an argument of the string name of the user to start the game
-start('T')
+start('giuseppe\'s_pizza')

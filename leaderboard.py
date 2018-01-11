@@ -338,7 +338,6 @@ class Leaderboard(object):
 def addTimePlayed(usr, game, ntime):
     global session, window
     ntime = round(ntime/60,1)
-    print(ntime)
     table = session.Table('playtime')
     response = table.get_item(
         Key={

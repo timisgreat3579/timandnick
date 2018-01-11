@@ -36,8 +36,7 @@ class grid(object):
     def getGrid(self):
         return self.grid  # Return the grid list
 
-    def draw(self, lineColor=(
-    0, 0, 0)):  # This will draw the lines to create the grid, this is done so by simply creating overlapping boxes
+    def draw(self, lineColor=(0, 0, 0)):  # This will draw the lines to create the grid, this is done so by simply creating overlapping boxes
         x = self.startx
         y = self.starty
 
@@ -314,7 +313,7 @@ class Leaderboard(object):
         self.text = nList
 
     #Call this method to display the leaderboard on the screen
-    def draw(self):
+    def draw(self, line=(255,255,255)):
         font = pygame.font.SysFont('freesansbold', 25)
         if self.type == 'global':
             label = font.render('Global Leaderboard',1,(255,255,255))
@@ -324,7 +323,7 @@ class Leaderboard(object):
         pygame.draw.rect(self.grid.screen,(255,255,255), (self.x, self.y -30,self.width, 30), 1)
 
         
-        self.grid.draw((255, 255, 255))
+        self.grid.draw(line)
         self.grid.setText(self.text)
 
     def update(self):

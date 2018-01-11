@@ -327,4 +327,3 @@ def main():
                 start(curUsr)
 
 # Call the start function with an argument of the string name of the user to start the game
-start('giuseppe\'s_pizza')

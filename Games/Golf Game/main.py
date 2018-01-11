@@ -53,7 +53,8 @@ hole = ()
 objects = []
 put = False
 shoot = False
-start = True
+Start = True
+user = ''
 
 # LOAD MUSIC
 wrong = pygame.mixer.Sound(os.path.join('sounds', 'wrong12.wav'))
@@ -180,9 +181,9 @@ def error():
 
 
 def endScreen(): # Display this screen when the user completes trhe course
-    global start, starting, level, sheet, coins
+    global Start, starting, level, sheet, coins, user
     starting = True
-    start = True
+    Start = True
 
     # Draw all text to display on screen
     win.blit(background, (0,0))
@@ -196,13 +197,11 @@ def endScreen(): # Display this screen when the user completes trhe course
     win.blit(blit, (winwidth/2 - blit.get_width()/2, 510))
     text = parFont.render('Score: ' + str(sheet.getScore()), 1, (64,64,64))
     win.blit(text, ((winwidth/2 - text.get_width()/2, 360)))
-    text = parFont.render('Coins Collected: ' + str(coins), 1, (64,64,64))
-    win.blit(text, ((winwidth/2 - text.get_width()/2, 470)))
     pygame.display.update()
 
 
     # RE-WRITE TEXT FILE Contaning Scores
-    oldscore = 0
+    '''oldscore = 0
     oldcoins = 0
     file = open('scores.txt', 'r')
     f = file.readlines()
@@ -234,7 +233,7 @@ def endScreen(): # Display this screen when the user completes trhe course
             file.write(line)
         co += 1
 
-    file.close()
+    file.close()'''
 
     # Wait
     loop = True
@@ -254,7 +253,7 @@ def endScreen(): # Display this screen when the user completes trhe course
     hover = False
     while starting:
         pygame.time.delay(10)
-        startScreen.mainScreen(hover)
+        startScreen.mainScreen(user, hover)
         for event in pygame.event.get():
             if event.type == pygame.MOUSEMOTION:
                 pos = pygame.mouse.get_pos()
@@ -520,6 +519,10 @@ def overHole(x,y):  # Determine if we are over top of the hole
     else:
         return False
 
+def start(usr):
+    global user
+    user = usr
+    setup(1)
 
 list = courses.getPar(1)
 par = list[level - 1]
@@ -527,7 +530,7 @@ sheet = scoreSheet(list)
 
 pos = courses.getStart(level, 1)
 ballStationary = pos
-setup(1)
+start('nickiscool123')
 
 
 # MAIN GAME LOOP:
@@ -544,7 +547,7 @@ hover = False
 starting = True
 while starting:
     pygame.time.delay(10)
-    startScreen.mainScreen(hover)
+    startScreen.mainScreen(user, hover)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
             pos = pygame.mouse.get_pos()
@@ -556,7 +559,7 @@ while starting:
             if startScreen.click(pos) != None:
                 starting = False
                 break
-            if startScreen.shopClick(pos) == True:
+            '''if startScreen.shopClick(pos) == True:
                 surface = startScreen.drawShop()
                 win.blit(surface, (0,0))
                 pygame.display.update()
@@ -573,7 +576,7 @@ while starting:
                                 break
                             surface = startScreen.drawShop(pos, True)
                             win.blit(surface, (0,0))
-                            pygame.display.update()
+                            pygame.display.update()'''
                     
         if event.type == pygame.QUIT:
             pygame.quit()

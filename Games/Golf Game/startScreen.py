@@ -93,8 +93,8 @@ def mainScreen(usr, hover=False):
     
     #draw leaderboard
 
-    globalTable = Leaderboard(curUsr, 'golf', 'global', surf, 300, 370, 150, 130)
-    friendTable = Leaderboard(curUsr, 'golf', 'friend', surf, 300, 370, 550, 130)
+    globalTable = Leaderboard(curUsr, 'golf', 'global', surf, 300, 380, 90, 200)
+    friendTable = Leaderboard(curUsr, 'golf', 'friend', surf, 300, 380, 680, 200)
     globalTable.draw((0,0,0))
     friendTable.draw((0,0,0))
     

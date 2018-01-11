@@ -243,8 +243,8 @@ def start(currentUser):
     infoBtn = button('Learn to Play', 30, 250, 50, (40,40,40))
     btns = [startBtn, infoBtn]
     run = True
-    globalTable = Leaderboard(curUsr, 'quicktype', 'global', win, 300, 370, 150, 130)
-    friendTable = Leaderboard(curUsr, 'quicktype', 'friend', win, 300, 370, 550, 130)
+    globalTable = Leaderboard(curUsr, 'quicktype', 'global', win, 300, 380, 150, 130)
+    friendTable = Leaderboard(curUsr, 'quicktype', 'friend', win, 300, 380, 550, 130)
     while run:
         pygame.time.delay(50)
         win.fill(bg)

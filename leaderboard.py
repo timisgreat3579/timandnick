@@ -67,7 +67,7 @@ class grid(object):
 # It uses all of the methods from the parent grid class and is a concrete class
 # The setText method takes a list of strings and displays them in the grid.
 class menu(grid):
-    def setText(self, textList):  # The textList argument passed must be equal to the number of spots in the grid
+    def setText(self, textList, color=(255,255,255)):  # The textList argument passed must be equal to the number of spots in the grid
 
         self.grid = []
         # Create textObjects in the grid
@@ -75,7 +75,7 @@ class menu(grid):
             self.grid.append([])
             for j in range(self.cols):
                 self.grid[i].append(
-                    textObject(j, i, self.width, self.height, self.cols, self.rows, self.startx, self.starty))
+                    textObject(j, i, self.width, self.height, self.cols, self.rows, self.startx, self.starty, 30, color))
 
         # Set the text for each of those objects
         c = 0
@@ -94,10 +94,10 @@ class menu(grid):
 # This class is responsible for displaying text and these objects are added into the grid.
 # The showText() method will display the text while the show() method will draw a square showing thr grid.
 class textObject():
-    def __init__(self, i, j, width, height, cols, rows, startx=0, starty=0, fontsize=30):
+    def __init__(self, i, j, width, height, cols, rows, startx=0, starty=0, fontsize=30, color=(255,255,255)):
         self.fontsize = fontsize
         self.font = pygame.font.SysFont('freesansbold', fontsize)
-        self.color = (255,255,255)
+        self.color = color
         self.col = i  # The column of the current instance in the grid
         self.row = j  # The row of the current instance in the grid
         self.rows = rows  # Total amount of rows
@@ -137,6 +137,7 @@ class Leaderboard(object):
         self.width = width
         self.height = height
         self.showGrid = True
+        self.textColor = (255,255,255)
         self.cols = 3
         self.rows = 5 # this will show top 5, if you want to make it show more change this number by calling the changeRows method
         self.x = x
@@ -210,6 +211,7 @@ class Leaderboard(object):
                             topName[ind] = name
 
         self.grid = menu(self.win, self.width, self.height, self.cols, self.rows+2, self.showGrid, self.x, self.y)
+        self.grid.bg = self.textColor
         if not(self.extra):
             nList = ['Rank', 'User', 'Score']
         else:
@@ -316,15 +318,15 @@ class Leaderboard(object):
     def draw(self, line=(255,255,255)):
         font = pygame.font.SysFont('freesansbold', 25)
         if self.type == 'global':
-            label = font.render('Global Leaderboard',1,(255,255,255))
+            label = font.render('Global Leaderboard',1,line)
         else:
-            label = font.render('Friend Leaderboard', 1, (255, 255, 255))
+            label = font.render('Friend Leaderboard', 1, line)
         self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
-        pygame.draw.rect(self.grid.screen,(255,255,255), (self.x, self.y -30,self.width, 30), 1)
+        pygame.draw.rect(self.grid.screen,line, (self.x, self.y -30,self.width, 30), 1)
 
         
         self.grid.draw(line)
-        self.grid.setText(self.text)
+        self.grid.setText(self.text, line)
 
     def update(self):
         self.setup()

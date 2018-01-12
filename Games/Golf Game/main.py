@@ -7,7 +7,16 @@ import startScreen
 from time import sleep, time
 import tkinter as tk
 from tkinter import messagebox
-import sys
+import sys, os.path
+leader_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+leader_dir = os.path.abspath(os.path.join(leader_dir, '..'))
+sys.path.append(leader_dir)
+import leaderboard
+import time as t
+from leaderboard import Leaderboard
+import boto3
+from boto3.dynamodb.conditions import Key, Attr
+from botocore.exceptions import ClientError
 
 # INITIALIZATION
 pygame.init()
@@ -55,6 +64,7 @@ put = False
 shoot = False
 Start = True
 user = ''
+timePlayed = 0
 
 # LOAD MUSIC
 wrong = pygame.mixer.Sound(os.path.join('sounds', 'wrong12.wav'))
@@ -200,40 +210,28 @@ def endScreen(): # Display this screen when the user completes trhe course
     pygame.display.update()
 
 
-    # RE-WRITE TEXT FILE Contaning Scores
-    '''oldscore = 0
-    oldcoins = 0
-    file = open('scores.txt', 'r')
-    f = file.readlines()
-    for line in file:
-        l = line.split()
-        if l[0] == 'score':
-            oldscore = str(l[1]).strip()
-        if l[0] == 'coins':
-            oldcoins = str(l[1]).strip()
+    # Change highscore if applicable
+    session = boto3.resource('dynamodb',
+                             aws_access_key_id='AKIAIOPUXE2QS7QN2MMQ',
+                             aws_secret_access_key='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',
+                             region_name="ca-central-1"
+                             )
+    table = session.Table('highscores')
+    response = table.query(
+        KeyConditionExpression=Key('peopleid').eq(user)
+    )
 
-    file = open('scores.txt', 'w')
-    if str(oldscore).lower() != 'none':
-        if sheet.getScore() < int(oldscore):
-            text = myFont.render('New Best!', 1, (64, 64, 64))
-            win.blit(text, (winwidth/2 - text.get_width()/2, 130))
-            pygame.display.update()
-            file.write('score ' + str(sheet.getScore()) + '\n')
-            file.write('coins ' + str(int(oldcoins) + coins) + '\n')
+    for i in response['Items']:
+        score = i['golf']
+
+    if sheet.getScore() < score or score == 0:
+        if sheet.getScore() == 0:
+            leaderboard.addHighscore(user, 'golf', 'Par')
         else:
-            file.write('score ' + str(oldscore) + '\n')
-            file.write('coins ' + str(int(oldcoins) + coins) + '\n')
-    else:
-        file.write('score ' + str(sheet.getScore()) + '\n')
-        file.write('coins ' + str(int(oldcoins) + coins) + '\n')
+            leaderboard.addHighscore(user, 'golf',sheet.getScore())
 
-    co = 0
-    for line in f:
-        if co > 2:
-            file.write(line)
-        co += 1
-
-    file.close()'''
+    leaderboard.addGamesPlayed(user, 'golf')
+    leaderboard.addTimePlayed(user, 'golf', t.time() - timePlayed)
 
     # Wait
     loop = True
@@ -584,6 +582,7 @@ while starting:
 
 # Game Loop for levels and collision
 while True:
+    timePlayed = t.time()
     if stickyPower == False and superPower == False:
         ballColor = startScreen.getBallColor()
         if ballColor == None:

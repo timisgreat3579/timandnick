@@ -2,18 +2,21 @@
 # To use these simply import the module and call either
 # - runLogin() #This will run the login window for exsisting users
 # - runCreate() #This will run the registartion window for new users
-
+import os
 from tkinter import *
 from tkinter import messagebox
 import random
 import boto3
 import json
+import time
 import decimal
 from boto3.dynamodb.conditions import Key, Attr
 from botocore.exceptions import ClientError
 from datetime import datetime
 import passwordHash
 from passwordHash import register
+import os
+
 
 currentUser = ''
 
@@ -36,8 +39,9 @@ class loginWindow(object):
     def __init__(self, master): #This will create a tkinter window for loggining in
         self.user = 0
         self.passw = 0
-
         top = self.top = Toplevel(master)
+
+        top.geometry('345x235+'+str(w) + '+' + str(h))
         top.title('Sign In')
         top.configure(background='#282828')
         top.overrideredirect(1)
@@ -57,10 +61,20 @@ class loginWindow(object):
         self.e = Entry(top, show='*', width=15, font=('freesansbold', 15))
         self.e.configure(background="#3c3c3c", foreground='#c8c8c8')
         self.e.grid(row=2,column=1,padx=7,pady=10,sticky=W+E+N+S)
+        self.b = Button(top, text='Don\'t have an account? Sign up here!', command=self.createAccount, font=('freesansbold', 11), highlightthickness = 0, bd = 0)
+        self.b.configure(background="#282828", foreground='#c8c8c8')
+        self.b.grid(row=3,columnspan=2,pady=5, sticky=W+E+N+S,padx=10)
         self.b = Button(top, text='SUBMIT', command=self.getValues, font=('freesansbold', 18))
         self.b.configure(background="#3c3c3c", foreground='#c8c8c8')
-        self.b.grid(row=3,columnspan=2,pady=5, sticky=W+E+N+S,padx=30)
+        self.b.grid(row=4,columnspan=2,pady=5, sticky=W+E+N+S,padx=30)
         self.top.bind('<Return>', self.getValues)
+
+    def createAccount(self):
+        self.top.destroy()
+        window.deiconify()
+        window.destroy()
+        window.quit()
+        runCreate()
 
     #Once the submit button is clicked then this will be called
     def getValues(self, x=0):
@@ -188,10 +202,21 @@ class registerWindow(object):
         self.passWord2.configure(background='#3c3c3c', foreground = '#c8c8c8')
         self.passWord2.grid(row=4,column=1,padx=7,pady=10,sticky=W+E+N+S)
 
+        self.b = Button(top, text='Already have an account? Sign in here!', command=self.loginAccount, font=('freesansbold', 11), highlightthickness = 0, bd = 0)
+        self.b.configure(background="#282828", foreground='#c8c8c8')
+        self.b.grid(row=5,columnspan=2,pady=5, sticky=W+E+N+S,padx=10)
+
         self.b = Button(top, text='SUBMIT', command=self.submitForm, font=('freesansbold', 18))
         self.b.configure(background='#3c3c3c', foreground='#c8c8c8')
-        self.b.grid(row=5,columnspan=2,pady=5, sticky=W+E+N+S,padx=30)
+        self.b.grid(row=6,columnspan=2,pady=5, sticky=W+E+N+S,padx=30)
         self.top.bind('<Return>', self.submitForm)
+
+    def loginAccount(self):
+        self.top.destroy()
+        window.deiconify()
+        window.destroy()
+        window.quit()
+        runLogin()
 
     @staticmethod
     def checkEmail(email):
@@ -378,9 +403,9 @@ def init():
     table = session.Table('people')
     
     window = Tk()
+    window.eval('tk::PlaceWindow %s center' % window.winfo_toplevel())
     window.withdraw()
     window.title('Tim and Nick')
-    printTable()
 
 
 #Call these functions from main module to run the login form and the new account form
@@ -408,7 +433,6 @@ def printTable():
     for i in response['Items']:
         print(i)
 
-runCreate()
-
+runLogin()
 
 

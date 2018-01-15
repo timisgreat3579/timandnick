@@ -270,7 +270,7 @@ class Leaderboard(object):
             nList.append('')
             nList.append('')
         if self.cols == 5:
-            nList = nList[:-1]        
+            nList = nList[:-1]
 
         table = session.Table('highscores')
         try:
@@ -326,8 +326,8 @@ class Leaderboard(object):
 
         
         self.grid.draw(line)
-        if self.extra and len(self.text) < 35:
-            for x in range(35 - len(self.text)):
+        if self.extra and len(self.text) < self.rows * (self.cols+2):
+            for x in range(self.rows * (self.cols+2) - len(self.text)):
                 self.text.append('None')
         self.grid.setText(self.text, line)
 

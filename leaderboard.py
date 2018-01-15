@@ -326,6 +326,9 @@ class Leaderboard(object):
 
         
         self.grid.draw(line)
+        if self.extra and len(self.text) < 35:
+            for x in range(35 - len(self.text)):
+                self.text.append('None')
         self.grid.setText(self.text, line)
 
     def update(self):

@@ -41,33 +41,43 @@ class loginWindow(object):
         self.passw = 0
         top = self.top = Toplevel(master)
 
-        top.geometry('345x235+'+str(w) + '+' + str(h))
+        top.geometry('345x265+830+400')
         top.title('Sign In')
         top.configure(background='#282828')
         top.overrideredirect(1)
         top.resizable(width=False, height=False)
+        self.b = Button(top, text='X', command=self.xBtn, font=('freesansbold', 14), highlightthickness = 0, bd = 0)
+        self.b.configure(background="#282828", foreground='#c8c8c8')
+        self.b.grid(row=0, column=1, sticky=E)
         self.l = Label(top, text='SIGN IN', font=('freesansbold', 20), justify=CENTER)
         self.l.configure(background='#282828', foreground='#c8c8c8')
-        self.l.grid(columnspan=2, sticky=W+E+N+S)
+        self.l.grid(row=1,columnspan=2, sticky=W+E+N+S)
         self.l = Label(top, text=" USERNAME: ", font=('freesansbold', 15), justify=CENTER)
         self.l.configure(background='#282828', foreground='#c8c8c8')
-        self.l.grid(row=1,column=0,pady=10, sticky=W+E+N+S)
+        self.l.grid(row=2,column=0,pady=10, sticky=W+E+N+S)
         self.e1 = Entry(top, width=15, font=('freesansbold', 15))
         self.e1.configure(background="#3c3c3c", foreground='#c8c8c8')
-        self.e1.grid(row=1,column=1, pady=10,padx=7, sticky=W+E+N+S)
+        self.e1.grid(row=2,column=1, pady=10,padx=7, sticky=W+E+N+S)
         self.l = Label(top, text=" PASSWORD: ", font=('freesansbold', 15), justify=CENTER)
         self.l.configure(background='#282828', foreground='#c8c8c8')
-        self.l.grid(row=2,column=0,padx=7,pady=10, sticky=W+E+N+S)
+        self.l.grid(row=3,column=0,padx=7,pady=10, sticky=W+E+N+S)
         self.e = Entry(top, show='*', width=15, font=('freesansbold', 15))
         self.e.configure(background="#3c3c3c", foreground='#c8c8c8')
-        self.e.grid(row=2,column=1,padx=7,pady=10,sticky=W+E+N+S)
+        self.e.grid(row=3,column=1,padx=7,pady=10,sticky=W+E+N+S)
         self.b = Button(top, text='Don\'t have an account? Sign up here!', command=self.createAccount, font=('freesansbold', 11), highlightthickness = 0, bd = 0)
         self.b.configure(background="#282828", foreground='#c8c8c8')
-        self.b.grid(row=3,columnspan=2,pady=5, sticky=W+E+N+S,padx=10)
+        self.b.grid(row=4,columnspan=2,pady=5, sticky=W+E+N+S,padx=10)
         self.b = Button(top, text='SUBMIT', command=self.getValues, font=('freesansbold', 18))
         self.b.configure(background="#3c3c3c", foreground='#c8c8c8')
-        self.b.grid(row=4,columnspan=2,pady=5, sticky=W+E+N+S,padx=30)
+        self.b.grid(row=5,columnspan=2,pady=5, sticky=W+E+N+S,padx=30)
         self.top.bind('<Return>', self.getValues)
+
+    def xBtn(self):
+        self.top.destroy()
+        window.deiconify()
+        window.destroy()
+        window.quit()
+        raise SystemExit
 
     def createAccount(self):
         self.top.destroy()
@@ -171,46 +181,57 @@ class registerWindow(object):
 
         top = self.top = Toplevel(master)
         top.overrideredirect(1)
+        top.geometry('375x360+830+400')
+        self.b = Button(top, text='X', command=self.xBtn, font=('freesansbold', 14), highlightthickness = 0, bd = 0)
+        self.b.configure(background="#282828", foreground='#c8c8c8')
+        self.b.grid(row=0, column=1, sticky=E)
         top.title('Register')
         top.configure(background='#282828')
         top.resizable(width=False, height=False)
         self.l = Label(top, text='REGISTER', font=('freesansbold', 20), justify=CENTER)
         self.l.configure(background='#282828', foreground='#c8c8c8')
-        self.l.grid(columnspan=2, sticky=W+E+N+S)
+        self.l.grid(row=1,columnspan=2, sticky=W+E+N+S)
         self.l = Label(top, text=" USERNAME: ", font=('freesansbold', 15), justify=CENTER)
         self.l.configure(background='#282828', foreground='#c8c8c8')
-        self.l.grid(row=1,column=0,pady=10, sticky=W+E+N+S)
+        self.l.grid(row=2,column=0,pady=10, sticky=W+E+N+S)
         self.usr = Entry(top, width=15, font=('freesansbold', 15))
         self.usr.configure(background='#3c3c3c', foreground = '#c8c8c8')
-        self.usr.grid(row=1,column=1, pady=10,padx=7, sticky=W+E+N+S)
+        self.usr.grid(row=2,column=1, pady=10,padx=7, sticky=W+E+N+S)
         self.l = Label(top, text=" EMAIL ADRESS: ", font=('freesansbold', 15), justify=CENTER)
         self.l.configure(background='#282828', foreground='#c8c8c8')
-        self.l.grid(row=2,column=0,pady=10, sticky=W+E+N+S)
+        self.l.grid(row=3,column=0,pady=10, sticky=W+E+N+S)
         self.em = Entry(top, width=15, font=('freesansbold', 15))
         self.em.configure(background='#3c3c3c', foreground = '#c8c8c8')
-        self.em.grid(row=2,column=1, pady=10, padx=7, sticky=W+E+N+S)
+        self.em.grid(row=3,column=1, pady=10, padx=7, sticky=W+E+N+S)
         self.l = Label(top, text=" PASSWORD: ", font=('freesansbold', 15), justify=CENTER)
         self.l.configure(background='#282828', foreground='#c8c8c8')
-        self.l.grid(row=3,column=0,padx=7,pady=10, sticky=W+E+N+S)
+        self.l.grid(row=4,column=0,padx=7,pady=10, sticky=W+E+N+S)
         self.passWord = Entry(top, show='*', width=15, font=('freesansbold', 15))
-        self.passWord.grid(row=3,column=1,padx=7,pady=10,sticky=W+E+N+S)
+        self.passWord.grid(row=4,column=1,padx=7,pady=10,sticky=W+E+N+S)
         self.passWord.configure(background='#3c3c3c', foreground = '#c8c8c8')
         self.l = Label(top, text=" RE-PASSWORD: ", font=('freesansbold', 15), justify=CENTER)
         self.l.configure(background='#282828', foreground='#c8c8c8')
-        self.l.grid(row=4,column=0,padx=7,pady=10, sticky=W+E+N+S)
+        self.l.grid(row=5,column=0,padx=7,pady=10, sticky=W+E+N+S)
         self.passWord2 = Entry(top, show='*', width=15, font=('freesansbold', 15))
         self.passWord2.configure(background='#3c3c3c', foreground = '#c8c8c8')
-        self.passWord2.grid(row=4,column=1,padx=7,pady=10,sticky=W+E+N+S)
+        self.passWord2.grid(row=5,column=1,padx=7,pady=10,sticky=W+E+N+S)
 
         self.b = Button(top, text='Already have an account? Sign in here!', command=self.loginAccount, font=('freesansbold', 11), highlightthickness = 0, bd = 0)
         self.b.configure(background="#282828", foreground='#c8c8c8')
-        self.b.grid(row=5,columnspan=2,pady=5, sticky=W+E+N+S,padx=10)
+        self.b.grid(row=6,columnspan=2,pady=5, sticky=W+E+N+S,padx=10)
 
         self.b = Button(top, text='SUBMIT', command=self.submitForm, font=('freesansbold', 18))
         self.b.configure(background='#3c3c3c', foreground='#c8c8c8')
-        self.b.grid(row=6,columnspan=2,pady=5, sticky=W+E+N+S,padx=30)
+        self.b.grid(row=7,columnspan=2,pady=5, sticky=W+E+N+S,padx=30)
         self.top.bind('<Return>', self.submitForm)
 
+    def xBtn(self):
+        self.top.destroy()
+        window.deiconify()
+        window.destroy()
+        window.quit()
+        raise SystemExit
+        
     def loginAccount(self):
         self.top.destroy()
         window.deiconify()
@@ -414,7 +435,7 @@ def runLogin():
     win = loginWindow(window)
     mainloop()
 
-    return currentUser
+    return win.user
 
 
 def runCreate():
@@ -433,6 +454,7 @@ def printTable():
     for i in response['Items']:
         print(i)
 
-runLogin()
+print(runLogin())
+
 
 

@@ -215,7 +215,7 @@ class Leaderboard(object):
         if not(self.extra):
             nList = ['Rank', 'User', 'Score']
         else:
-            nList = ['Rank', 'User', 'Score', 'Time Played', 'Games Played']
+            nList = ['Rank', 'User', 'Score', 'Time Played(m)', 'Games Played']
             
         #Bubble sort the names
         if self.game == 'quicktype':
@@ -255,7 +255,7 @@ class Leaderboard(object):
                         'peopleid':topName[x]
                     }
                 )
-                nList.append(str(response['Item'][self.game]))
+                nList.append(str(round(response['Item'][self.game]),1))
 
                 table = session.Table('games_played')
                 response = table.get_item(

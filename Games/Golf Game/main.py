@@ -593,14 +593,14 @@ while True:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
-            if event.key == pygame.K_SPACE:
+            '''if event.key == pygame.K_SPACE:
                 fade()
                 if strokes == 1:
                     holeInOne()
                 else:
-                    displayScore(strokes, par)
+                    displayScore(strokes, par)'''
 
-                strokes = 0
+                #strokes = 0
         if event.type == pygame.MOUSEMOTION:
             pos = pygame.mouse.get_pos()
             for x in powerUpButtons:

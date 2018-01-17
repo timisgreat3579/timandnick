@@ -255,7 +255,7 @@ class Leaderboard(object):
                         'peopleid':topName[x]
                     }
                 )
-                nList.append(str(round(response['Item'][self.game]),1))
+                nList.append(str(round(response['Item'][self.game],1)))
 
                 table = session.Table('games_played')
                 response = table.get_item(
@@ -264,13 +264,18 @@ class Leaderboard(object):
                     }
                 )
                 nList.append(str(response['Item'][self.game]))
-
-        while len(nList) < (self.rows + 1) * self.cols:
-            nList.append('')
-            nList.append('')
-            nList.append('')
-        if self.cols == 5:
-            nList = nList[:-1]
+        if self.extra:
+            while len(nList) < (self.rows + 1) * self.cols:
+                nList.append('')
+                nList.append('')
+                nList.append('')
+                nList.append('')
+                nList.append('')
+        else:
+            while len(nList) < (self.rows + 1) * self.cols:
+                nList.append('')
+                nList.append('')
+                nList.append('')
 
         table = session.Table('highscores')
         try:

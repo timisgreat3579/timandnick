@@ -88,4 +88,8 @@ buff.draw(scr)
 pygame.display.flip() 
 session_var = session_create().session
 pygame.quit()
+
+#from .loginWindow import runLogin
+#user_login = runLogin()
+user_login = 'nickiscool123'
 from .launcher_screen import *

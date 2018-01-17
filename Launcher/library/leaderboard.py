@@ -67,7 +67,7 @@ class grid(object):
 # It uses all of the methods from the parent grid class and is a concrete class
 # The setText method takes a list of strings and displays them in the grid.
 class menu(grid):
-    def setText(self, textList):  # The textList argument passed must be equal to the number of spots in the grid
+    def setText(self, textList, color=(255,255,255)):  # The textList argument passed must be equal to the number of spots in the grid
 
         self.grid = []
         # Create textObjects in the grid
@@ -75,7 +75,7 @@ class menu(grid):
             self.grid.append([])
             for j in range(self.cols):
                 self.grid[i].append(
-                    textObject(j, i, self.width, self.height, self.cols, self.rows, self.startx, self.starty, 30, self.bg))
+                    textObject(j, i, self.width, self.height, self.cols, self.rows, self.startx, self.starty, 30, color))
 
         # Set the text for each of those objects
         c = 0
@@ -270,7 +270,7 @@ class Leaderboard(object):
             nList.append('')
             nList.append('')
         if self.cols == 5:
-            nList = nList[:-1]        
+            nList = nList[:-1]
 
         table = session.Table('highscores')
         try:
@@ -316,17 +316,20 @@ class Leaderboard(object):
 
     #Call this method to display the leaderboard on the screen
     def draw(self, line=(255,255,255)):
-       #font = pygame.font.SysFont('freesansbold', 25)
-        #if self.type == 'global':
-        #    label = font.render('Global Leaderboard',1,line)
-        #else:
-        #    label = font.render('Friend Leaderboard', 1, line)
+       # font = pygame.font.SysFont('freesansbold', 25)
+       # if self.type == 'global':
+       #     label = font.render('Global Leaderboard',1,line)
+       # else:
+       #     label = font.render('Friend Leaderboard', 1, line)
        # self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
        # pygame.draw.rect(self.grid.screen,line, (self.x, self.y -30,self.width, 30), 1)
 
-        self.grid.startx,self.grid.starty = self.x,self.y
+        self.grid.startx,self.grid.starty=self.x,self.y
         self.grid.draw(line)
-        self.grid.setText(self.text)
+        if self.extra and len(self.text) < self.rows * (self.cols+2):
+            for x in range(self.rows * (self.cols+2) - len(self.text)):
+                self.text.append('None')
+        self.grid.setText(self.text, line)
 
     def update(self):
         self.setup()

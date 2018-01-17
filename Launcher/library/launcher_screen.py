@@ -1,8 +1,8 @@
-import pygame,os,pygame.gfxdraw,sys
+import pygame,os,pygame.gfxdraw,sys,os.path
 from random import randint,randrange
-from .loading_screen import buffer,session_var
+from .loading_screen import buffer,session_var,user_login
 from .leaderboard import Leaderboard
-from .server_data import get_players
+from .server_data import get_players,get_table_data
 
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -78,6 +78,60 @@ class surface_object():
     def get_rect(self):
         return self.surface.get_rect(center=(self.x,self.y))
 
+class popup_window_friend():
+    def __init__(self):
+        self.main_surface = surface_object(250,320,0,0,DGREY)
+        self.top_bar = surface_object(self.main_surface.w,self.main_surface.h/6,self.main_surface.x,self.main_surface.y,DDGREY)
+        self.brand_text = draw_text('',30,True,WHITE)
+        self.current_window = None
+        self.game_buttons = button_grouper(self.top_bar,['FRIENDS','REQUESTS'],button
+                                           ,frames=[display_buttons('friends',1,self.main_surface.w,self.main_surface.h - self.main_surface.h/6,0,self.main_surface.h/6),None]
+                                           ,pos=(0,round(self.top_bar.h-self.top_bar.h/2)),sizes=(0,self.top_bar.h/2),centerx = True)
+
+        
+    def draw(self,surface):
+        self.main_surface.surface.blit(self.top_bar.surface,(self.top_bar.x,self.top_bar.y))
+        surface.blit(self.main_surface.surface,(self.main_surface.x,self.main_surface.y))
+        if self.current_window is not None:
+            self.current_window.draw(surface)
+        self.game_buttons.draw(surface)
+        pygame.draw.rect(surface,WHITE,pygame.Rect(self.main_surface.x,self.main_surface.y,self.main_surface.w,self.main_surface.h),2)
+    def check_drag(self):
+        if pygame.Rect(self.main_surface.x,self.main_surface.y,self.main_surface.w,self.main_surface.h/6).collidepoint(pygame.mouse.get_pos()):
+            self.main_surface.x,self.main_surface.y = pygame.mouse.get_pos()[0]+self.main_surface.x,pygame.mouse.get_pos()[1] +self.main_surface.y
+
+class display_buttons():
+    def __init__(self,index,types,w,h,x,y):
+        self.type = types
+        self.scroll_y = 0
+        self.index = index
+        self.scroll_bar_size = 0
+        self.w = w
+        self.h = h
+        self.x = x
+        self.y = y
+        self.background = surface_object(self.w,self.h,self.x,self.y,DGREY)
+        self.scroll_bar_frame = surface_object(self.w/20,self.h/1.3,self.w - (self.w/20*2),(self.h - self.h/1.3)/2,SGREY)
+        self.scroll_bar = surface_object(self.scroll_bar_frame.w,self.scroll_bar_size,self.w - (self.w/20*2),self.scroll_bar_frame.y + self.scroll_bar_size,WHITE)
+        self.update_buttons()
+    def draw(self,surface):
+        if self.scroll_y < self.scroll_bar.y+(self.scroll_bar.h/2):
+            self.scroll_y = self.scroll_bar.y+(self.scroll_bar.h/2)
+        elif self.scroll_y > self.scroll_bar.y+self.scroll_bar_frame.h-self.scroll_bar_size + (self.scroll_bar.h/2):
+            self.scroll_y = self.scroll_bar.y+self.scroll_bar_frame.h-self.scroll_bar_size + (self.scroll_bar.h/2)
+        self.background.surface.blit(surface_object(1000,1000,self.x,self.y,DGREY).surface,(self.x,self.y))
+        for i,x in enumerate(self.player_buttons):
+            x.x,x.y=10,((i)*110+10)#-self.scroll_y
+            x.draw(self.background.surface)
+        self.background.surface.blit(self.scroll_bar_frame.surface,(self.scroll_bar_frame.x,(self.background.h - self.scroll_bar_frame.h)/2))
+        surface.blit(self.background.surface,(self.x,self.y))
+        surface.blit(self.scroll_bar.surface,(self.scroll_bar.x,self.scroll_bar.y))
+    def update_buttons(self):
+        self.player_buttons = []
+        for i,x in enumerate(get_table_data('friends')):
+            self.player_buttons.append(button(self.background.surface,x,center='LEFT',bold=True,font_size=40,color = DGREY
+                                              ,startpos=(self.x+10,self.y+((i)*110+10)),size=(self.w/2.2,100)))
+
 class launcher():
     def __init__(self,screen):
         self.screen = screen
@@ -89,6 +143,7 @@ class launcher():
         self.fr_menu = None
         self.top_bar = surface_object(self.w,self.h/8,0,0,DDGREY)
         self.enlarge = False
+        self.friends_open = False
         self.brand_text = draw_text('TRNT v1.0',30,True,WHITE)
 
         self.user_text = draw_text('Welcome, ' + user.upper() +'!',17,False,WHITE)
@@ -104,11 +159,16 @@ class launcher():
         self.close_button = button(self.screen,'x',startpos=(self.top_bar.w-self.top_bar.w/25,0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=15,bold = True)
         self.enlarge_button = button(self.screen,'□',startpos=(self.top_bar.w-self.top_bar.w/25-self.top_bar.w/25,0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=15,bold = False)
         self.minimize_button = button(self.screen,'-',startpos=(self.top_bar.w-self.top_bar.w/25-self.top_bar.w/25-self.top_bar.w/25,0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=16,bold = True)
+
+        self.friends_button = button(self.screen,'FRIENDS',startpos=(self.top_bar.w-(self.top_bar.w/25*4),0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=10,bold = True)
+
+        ##FRIENDS WINDOW
+        self.friends_window = popup_window_friend()
     def draw(self,surface):
         if self.frame_selected is not None:
             self.frame_selected.draw(surface)
             if isinstance(self.frame_selected,library_screen) and self.game_screen is not None:
-                self.game_screen.draw(surface)
+                self.game_screen.draw(surface)                   
             if isinstance(self.leaderb_menu,Leaderboard) and self.leaderb_menu is not None and isinstance(self.frame_selected,stats_screen):
                 self.leaderb_menu.draw()
             if isinstance(self.frame_selected,profile_screen) and self.fr_menu is not None:
@@ -117,15 +177,19 @@ class launcher():
         surface.blit(self.top_bar.surface,(self.top_bar.x,self.top_bar.y))
         self.main_buttons.draw(surface)
         surface.blit(self.brand_text.surface,(10,0))
-        surface.blit(self.user_text.surface,(self.top_bar.w - self.user_text.width-self.top_bar.w/25-self.top_bar.w/25-self.top_bar.w/25-self.top_bar.w/40,0))
+        surface.blit(self.user_text.surface,(self.top_bar.w - self.user_text.width-(self.top_bar.w/25*5),0))
         self.close_button.draw(surface)
         self.enlarge_button.draw(surface)
         self.minimize_button.draw(surface)
+        self.friends_button.draw(surface)
+        if self.friends_open:
+            self.friends_window.draw(surface)
     def check_buttons(self):
         self.frame_selected = self.main_buttons.check_event(self.frame_selected)
         self.game_screen = self.library_menu.game_buttons.check_event(self.game_screen)
         self.leaderb_menu = self.stats_menu.select_scores.check_event(self.leaderb_menu)
         self.fr_menu = self.profile_menu.select_scores.check_event(self.fr_menu)
+        self.friends_window.current_window = self.friends_window.game_buttons.check_event(self.friends_window.current_window)
         if isinstance(self.frame_selected,community_screen):
             if self.community_menu.refresh_button.on_mouse_click():
                 buffer(self.community_menu.players_box,self.community_menu.players_box.x
@@ -136,11 +200,27 @@ class launcher():
                 buffer(self.stats_menu.leader_board_display,self.stats_menu.leader_board_display.x,self.stats_menu.leader_board_display.y + self.stats_menu.display_screen.y,'WAITING').draw(surf = self.screen)
                 for i in self.stats_menu.select_scores.frames:
                     i.update()
+        if isinstance(self.frame_selected,library_screen) and self.game_screen is not None:
+            game_directory = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+            game_directory = os.path.abspath(os.path.join(leader_dir, '..'))
+            game_directory = os.path.join('Games/'+self.game_screen.name)
+            sys.path.append(game_directory)
+            if self.game_screen.name == 'quicktype' and self.game_screen.play_button.on_mouse_click():
+                
+            elif self.game_screen.name == 'integerrecall' and self.game_screen.play_button.on_mouse_click():
+
+            elif self.game_screen.name == 'golfgame' and self.game_screen.play_button.on_mouse_click():
+                
         if self.minimize_button.on_mouse_click():
             pygame.display.iconify()
         if self.close_button.on_mouse_click():
             pygame.quit()
             raise SystemExit
+        if self.friends_button.on_mouse_click():
+            if self.friends_open:
+                self.friends_open = False
+            else:
+                self.friends_open = True
         if self.enlarge_button.on_mouse_click():
             if self.enlarge:
                 screen = pygame.display.set_mode((1280,720),pygame.NOFRAME)
@@ -179,7 +259,7 @@ class library_screen(main_frame):
         super().__init__(parent)
         self.side_bar = surface_object(self.display_screen.w/6,self.display_screen.h,0,0,DGREY)
         self.game_buttons = button_grouper(self.side_bar,['QUICKTYPE','INTEGER RECALL','GOLF GAME'],button
-                                           ,frames=[game_frame(self.parent,'quicktype','quicktype'),game_frame(self.parent,'integerrecall','integerrecall'),None,None],pos=(0,self.display_screen.y),sizes=(self.side_bar.w,0),centery = True)
+                                           ,frames=[game_frame(self.parent,'quicktype','quicktype'),game_frame(self.parent,'integerrecall','integerrecall'),game_frame(self.parent,'golfgame','golfgame')],pos=(0,self.display_screen.y),sizes=(self.side_bar.w,0),centery = True)
         self.stars  = star_gaze(self.display_screen.w,self.display_screen.h,7)
     def draw(self,surface):
         #self.scroll_bar_frame.surface.blit(self.scroll_bar.surface,(self.scroll_bar_frame.x,self.scroll_bar.y))
@@ -205,7 +285,7 @@ class game_frame(main_frame):
     def __init__(self,parent,name,to_run):
         super().__init__(parent)
         self.move_val = 0
-        
+        self.name = name
         self.display_screen = surface_object(self.w-self.w/6,self.h,self.w/6,self.y,DGREY)
         self.display_screen.surface.set_alpha(220)
         self.bg_picture = surface_object(self.display_screen.w/1.2,400,(self.display_screen.w - self.display_screen.w/1.2)/2,100,DDGREY)
@@ -222,7 +302,7 @@ class game_frame(main_frame):
         self.image = pygame.transform.scale(self.image,(int(self.bg_picture.w),int(self.bg_picture.h+190)))
 
         self.quicktype_scores = Leaderboard(user,name,'friends',parent,self.bg_leader.w,self.bg_leader.h
-                                                   ,self.bg_leader.x,self.bg_leader.y)
+                                                   ,self.bg_leader.x,self.bg_leader.y,True)
     def draw(self,surface):
         if self.scroll_y < 163+(self.scroll_bar.h/2):
             self.scroll_y = 163+(self.scroll_bar.h/2)
@@ -279,15 +359,18 @@ class friends_screen(main_frame):
         super().__init__(parent)
         self.player_buttons = []
         self.players_box = surface_object(self.w/2,self.h/1.2,(self.display_screen.w-self.w/2)/2,self.display_screen.h/7,DDGREY)
+        
     def draw(self,surface):
+        print(self.player_buttons)
         self.players_box.surface.blit(surface_object(1000,1000,0,0,DDGREY).surface,(0,0))
+        self.update_buttons()
         for i,x in enumerate(self.player_buttons):
             x.x,x.y=10,((i)*110+10)
             x.draw(self.players_box.surface)
         self.players_box.surface.blit(self.scroll_bar_frame.surface,(self.players_box.w/4*3.8,(self.players_box.h-self.scroll_bar_frame.h)/2))
         self.display_screen.surface.blit(self.players_box.surface,(self.players_box.x,self.players_box.y))
         surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
-
+        
     def update_buttons(self):
         self.player_buttons = []
         for i,x in enumerate(get_table_data('friends')):
@@ -330,13 +413,13 @@ class stats_screen(main_frame):
         self.scroll_bar_frame = surface_object(self.w/70,self.h/1.55,self.x*7.5,(self.h - self.h/1.55)/2,SGREY)
         self.refresh_button = button(self.display_screen,'REFRESH',startpos = ((self.display_screen.w-200)/2,self.display_screen.h+27),size=(200,50))
         quicktype_scores = Leaderboard(user,'quicktype','global',parent,self.leader_board_display.w,self.leader_board_display.h
-                                                   ,self.leader_board_display.x,self.h/3.9)
+                                                   ,self.leader_board_display.x,self.h/3.9,True)
 
         integer_scores = Leaderboard(user,'integerrecall','global',parent,self.leader_board_display.w,self.leader_board_display.h
-                                                   ,self.leader_board_display.x,self.h/3.9)
+                                                   ,self.leader_board_display.x,self.h/3.9,True)
 
         golf_scores = Leaderboard(user,'golf','global',parent,self.leader_board_display.w,self.leader_board_display.h
-                                                   ,self.leader_board_display.x,self.h/3.9)
+                                                   ,self.leader_board_display.x,self.h/3.9,True)
         self.select_scores = button_grouper(self.select_bar,['QUICKTYPE','INTEGER RECALL','GOLF GAME'],button,frames=[quicktype_scores,integer_scores,golf_scores],pos=(0,self.display_screen.y+self.select_bar.y),sizes=(0,self.select_bar.h),centerx = True,style=1)
     def draw(self,surface):
         self.display_screen.surface.blit(self.select_bar.surface,(self.select_bar.x,self.select_bar.y))
@@ -437,7 +520,7 @@ class button_grouper():
         return p_frame
 
 session = session_var
-user = 'nickiscool123'
+user = user_login
 launch = launcher(screen)
 
 while True:

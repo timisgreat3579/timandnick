@@ -3,7 +3,8 @@ from configparser import ConfigParser
 from boto3.dynamodb.conditions import Key, Attr
 launcher_config = ConfigParser()
 launcher_config.read('./data/config.ini')
-user = launcher_config.get('USER','username')
+user_login = launcher_config.get('USER','username')
+user_login = 'nickiscool123'
 user = 'nickiscool123'
 
 session = session_var
@@ -18,19 +19,134 @@ def get_players(query):
             names.append(name)
         elif len(query) is 0:
             names.append(name)
-
+    if user_login in names: names.remove(user_login)
     return names
 
 def get_table_data(data):
-    response = people_table.query(KeyConditionExpression=Key('peopleid').eq(user))
+    response = people_table.query(KeyConditionExpression=Key('peopleid').eq(user_login))
     for i in response['Items']: names = i[data]
-    if user in names: names.remove(user)
+    if user_login in names: names.remove(user_login)
     return names
 
-def accept_friend_request(user):
+def accept_friend_request(friend):
+    response = people_table.get_item(
+        Key={
+            'peopleid': user_login
+        }
+    )
+    nFriends = response['Item']['friends']
+    nFriends.append(friend)
+    
+    response = people_table.update_item(
+        Key={
+            'peopleid':user_login
+        },
+        UpdateExpression="set " + 'friends' + " = :r",
+        ExpressionAttributeValues={
+            ':r': nFriends,
+        }
+    )
+
+    response = people_table.get_item(
+        Key={
+            'peopleid': friend
+        }
+    )
+    nFreinds = response['Item']['friends']
+    nFreinds.append(user_login)
+    
+    response = people_table.update_item(
+        Key={
+            'peopleid':friend
+        },
+        UpdateExpression="set " + 'friends' + " = :r",
+        ExpressionAttributeValues={
+            ':r': nFreinds,
+        }
+    )
+
+    #update requests
+
+    decline_friend_request(friend)
+    
+
+def decline_friend_request(friend):
+    response = people_table.get_item(
+    Key={
+        'peopleid': friend
+        }
+    )
+    oldRequests = response['Item']['requests']
+    x = oldRequests.index(user_login)
+    del oldRequests[x]
+    
+    response = people_table.update_item(
+        Key={
+            'peopleid':friend
+        },
+        UpdateExpression="set " + 'requests' + " = :r",
+        ExpressionAttributeValues={
+            ':r': oldRequests,
+        }
+    )
+
+    response = people_table.get_item(
+        Key={
+            'peopleid': user_login
+        }
+    )
+    oldRequests = response['Item']['requests']
+    x = oldRequests.index(friend)
+    del oldRequests[x]
+    
+    response = people_table.update_item(
+        Key={
+            'peopleid':user_login
+        },
+        UpdateExpression="set " + 'requests' + " = :r",
+        ExpressionAttributeValues={
+            ':r': oldRequests,
+        }
+    )
+    
+
+def send_friend_request(friend):
+    response = people_table.get_item(
+        Key={
+            'peopleid': user_login
+        }
+    )
+        
+    oldRequests = response['Item']['requests']
+    oldRequests.append(friend)
+    
+    response = people_table.update_item(
+        Key={
+            'peopleid':user_login
+        },
+        UpdateExpression="set " + 'requests' + " = :r",
+        ExpressionAttributeValues={
+            ':r': oldRequests,
+        }
+    )
+
+    response = people_table.get_item(
+        Key={
+            'peopleid': friend
+        }
+    )
+    oldRequests = response['Item']['requests']
+    oldRequests.append(user_login)
+    
+    response = people_table.update_item(
+        Key={
+            'peopleid':friend
+        },
+        UpdateExpression="set " + 'requests' + " = :r",
+        ExpressionAttributeValues={
+            ':r': oldRequests,
+        }
+    )
+
+def remove_friend(friend):
     pass
-
-def decline_friend_request(user):
-    pass
-
-

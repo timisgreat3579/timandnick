@@ -2,7 +2,7 @@ import pygame,os,pygame.gfxdraw,sys,os.path
 from random import randint,randrange
 from .loading_screen import buffer,session_var,user_login
 from .leaderboard import Leaderboard
-from .server_data import get_players,get_table_data,accept_friend_request,decline_friend_request
+from .server_data import get_players,get_table_data,accept_friend_request,decline_friend_request,send_friend_request,remove_friend
 
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -208,7 +208,7 @@ class launcher():
         if self.frame_selected is not None:
             self.frame_selected.draw(surface)
             if isinstance(self.frame_selected,library_screen) and self.game_screen is not None:
-                self.game_screen.draw(surface)                   
+                self.game_screen.draw(surface)
             if isinstance(self.leaderb_menu,Leaderboard) and self.leaderb_menu is not None and isinstance(self.frame_selected,stats_screen):
                 self.leaderb_menu.draw()
             if isinstance(self.frame_selected,profile_screen) and self.fr_menu is not None:
@@ -232,6 +232,9 @@ class launcher():
         self.leaderb_menu = self.stats_menu.select_scores.check_event(self.leaderb_menu)
         self.friends_window.current_window = self.friends_window.game_buttons.check_event(self.friends_window.current_window)
         if isinstance(self.frame_selected,community_screen):
+            for x in self.community_menu.player_buttons:
+                if x.on_mouse_click():
+                    self.open_profile(x.user)
             if self.community_menu.refresh_button.on_mouse_click():
                 buffer(self.community_menu.players_box,self.community_menu.players_box.x
                        ,self.community_menu.players_box.y + self.community_menu.display_screen.y,'WAITING').draw(surf = self.screen)
@@ -241,6 +244,8 @@ class launcher():
                 buffer(self.stats_menu.leader_board_display,self.stats_menu.leader_board_display.x,self.stats_menu.leader_board_display.y + self.stats_menu.display_screen.y,'WAITING').draw(surf = self.screen)
                 for i in self.stats_menu.select_scores.frames:
                     i.update()
+        if isinstance(self.frame_selected,profile_screen):
+            self.frame_selected.check_buttons()
         if isinstance(self.frame_selected,library_screen) and self.game_screen is not None:
             game_directory = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
             game_directory = os.path.abspath(os.path.join(game_directory, '../Games/'+self.game_screen.name))
@@ -260,6 +265,8 @@ class launcher():
             pygame.quit()
             raise SystemExit
         if self.friends_button.on_mouse_click():
+            for x in self.friends_window.game_buttons.frames:
+                x.update_buttons()
             if self.friends_open:
                 self.friends_open = False
             else:
@@ -429,18 +436,41 @@ class profile_screen(main_frame):
         self.bg_title = surface_object(self.display_screen.w/1.2,50
                                        ,(self.display_screen.w-self.display_screen.w/1.2)/2,10,DDGREY)
         self.back_button = button(self.display_screen,'<<<',startpos=(self.display_screen.w/70,self.display_screen.y+30),size=(self.display_screen.w/15,50),font_size =30,text_color=WHITE,bold=True)
+        self.add_friend_button = button(self.display_screen,'+ ADD',startpos=(self.display_screen.w/12,self.display_screen.y+83),size=(self.display_screen.w/10,50),font_size =22,text_color=WHITE,bold=True)
+        self.message_button = button(self.display_screen,'MESSAGE',startpos=(self.display_screen.w/5.4,self.display_screen.y+83),size=(self.display_screen.w/10,50),font_size =22,text_color=DDWHITE,bold=True)
         self.refresh_button = button(self.display_screen,'REFRESH',startpos = ((self.display_screen.w-200)/2
                                                                                ,self.display_screen.h+27)
                                      ,size=(200,50))
     def draw(self,surface):
-        
+        self.friends = get_table_data('friends')
+        self.requests = get_table_data('friends')
+        if self.other_profile:
+            if self.user in self.friends:
+                self.add_friend_button.text = 'UNFRIEND'
+                self.add_friend_button.text_color = DDWHITE
+            elif self.user in self.requests:
+                self.add_friend_button.text = 'SENT'
+                self.add_friend_button.text_color = DDWHITE
         self.display_screen.surface.blit(self.bg_title.surface
                                          ,((self.display_screen.w-self.display_screen.w/1.2)/2,30))
         self.display_screen.surface.blit(self.game_text.surface,(self.display_screen.w/10,34))
         surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
         self.refresh_button.draw(surface)
         if self.other_profile:
+            self.add_friend_button.draw(surface)
             self.back_button.draw(surface)
+            if self.user in self.friends:
+                self.message_button.draw(surface)
+
+        
+
+    def check_buttons(self):
+        if self.other_profile:
+            if self.add_friend_button.on_mouse_click() and not self.friends and not self.user in self.requests:
+                send_friend_request(self.user)
+            elif self.add_friend_button.on_mouse_click() and self.user in self.friends:
+                remove_friend(self.user)
+                
 
 class community_screen(main_frame):
     def __init__(self,parent):
@@ -469,7 +499,8 @@ class community_screen(main_frame):
     def update_buttons(self):
         self.player_buttons = []
         for i,x in enumerate(get_players(''.join(self.search_text))):
-            self.player_buttons.append(button(self.players_box.surface,x,center='LEFT',bold=True,font_size=40,color = DGREY,startpos=(self.search_bg.x+10,self.display_screen.h/3.5+((i)*110+10)),size=(self.w/2.2,100)))
+            self.player_buttons.append(button(self.players_box.surface,x,center='LEFT',bold=True,font_size=40,color = DGREY
+                                              ,startpos=(self.search_bg.x+10,self.display_screen.h/3.5+((i)*110+10)),size=(self.w/2.2,100),user=x))
             
 class stats_screen(main_frame):
     def __init__(self,parent):

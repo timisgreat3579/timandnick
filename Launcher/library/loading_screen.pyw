@@ -1,4 +1,5 @@
 import pygame,os
+import importlib
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 pygame.init()
 #if pygame.QUIT in pygame.event.get(): pygame.quit();raise SystemExit;
@@ -68,24 +69,31 @@ class surface_object():
 
     def get_rect(self):
         return self.surface.get_rect(center=(self.x,self.y))
+    
+def change_text(text):
+    buff.default_text = text
+    buff.draw(scr)   
+    pygame.display.flip()
+
+    
 scr = load_screen().screen
 buff = buffer(surface_object(640,350,0,0,(0,0,0)),0,0,'LOADING',255)
+buff.draw(scr)
+pygame.display.flip()
 
-buff.draw(scr)
-pygame.display.flip()
-buff.default_text = 'CHECKING PIP'
-buff.draw(scr)
-pygame.display.flip()
-from .getpip import *
-import pip
-buff.default_text = 'INSTALLING BOTO'
-buff.draw(scr)
-pygame.display.flip()
-pip.main(['install','boto3'])
 
-buff.default_text = 'LOGGING IN...'
-buff.draw(scr)
-pygame.display.flip() 
+
+change_text('CHECKING PIP')
+
+if importlib.find_loader('pip') is None:
+    from .getpip import *
+
+change_text('CHECKING BOTO')
+if importlib.find_loader('boto3') is None:
+    change_text('INSTALLING BOTO')
+    pip.main(['install','boto3'])
+
+change_text('LOGGING IN...')
 session_var = session_create().session
 pygame.quit()
 

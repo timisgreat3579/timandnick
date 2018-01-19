@@ -215,7 +215,7 @@ class Leaderboard(object):
         if not(self.extra):
             nList = ['Rank', 'User', 'Score']
         else:
-            nList = ['Rank', 'User', 'Score', 'Time Played', 'Games Played']
+            nList = ['Rank', 'User', 'Score', 'Time Played(m)', 'Games Played']
             
         #Bubble sort the names
         if self.game == 'quicktype':
@@ -255,7 +255,7 @@ class Leaderboard(object):
                         'peopleid':topName[x]
                     }
                 )
-                nList.append(str(response['Item'][self.game]))
+                nList.append(str(round(response['Item'][self.game],1)))
 
                 table = session.Table('games_played')
                 response = table.get_item(
@@ -316,15 +316,15 @@ class Leaderboard(object):
 
     #Call this method to display the leaderboard on the screen
     def draw(self, line=(255,255,255)):
-       # font = pygame.font.SysFont('freesansbold', 25)
-       # if self.type == 'global':
-       #     label = font.render('Global Leaderboard',1,line)
-       # else:
-       #     label = font.render('Friend Leaderboard', 1, line)
-       # self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
-       # pygame.draw.rect(self.grid.screen,line, (self.x, self.y -30,self.width, 30), 1)
+        #font = pygame.font.SysFont('freesansbold', 25)
+        #if self.type == 'global':
+        #    label = font.render('Global Leaderboard',1,line)
+        #else:
+        #    label = font.render('Friend Leaderboard', 1, line)
+        ##self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
+        #pygame.draw.rect(self.grid.screen,line, (self.x, self.y -30,self.width, 30), 1)
 
-        self.grid.startx,self.grid.starty=self.x,self.y
+        self.grid.startx,self.grid.starty = self.x,self.y
         self.grid.draw(line)
         if self.extra and len(self.text) < self.rows * (self.cols+2):
             for x in range(self.rows * (self.cols+2) - len(self.text)):

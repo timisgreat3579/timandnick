@@ -25,6 +25,12 @@ def get_table_data(data):
     response = people_table.query(KeyConditionExpression=Key('peopleid').eq(user))
     for i in response['Items']: names = i[data]
     if user in names: names.remove(user)
-    return names 
+    return names
+
+def accept_friend_request(user):
+    pass
+
+def decline_friend_request(user):
+    pass
 
 

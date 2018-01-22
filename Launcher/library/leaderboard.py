@@ -46,7 +46,7 @@ class grid(object):
                 x += round(self.width / self.cols)
             for j in range(self.rows):
                 y -= round(self.height / self.rows)
-                pygame.draw.rect(self.screen, lineColor, (x, y, self.width / self.cols, self.height / self.rows), 1)
+                pygame.draw.rect(self.screen, lineColor, (x, y, round(self.width / self.cols), round(self.height / self.rows)), 1)
 
     def clicked(self, pos):  # Return the position in the grid that user clicked on
         try:
@@ -264,13 +264,18 @@ class Leaderboard(object):
                     }
                 )
                 nList.append(str(response['Item'][self.game]))
-
-        while len(nList) < (self.rows + 1) * self.cols:
-            nList.append('')
-            nList.append('')
-            nList.append('')
-        if self.cols == 5:
-            nList = nList[:-1]
+        if self.extra:
+            while len(nList) < (self.rows + 1) * self.cols:
+                nList.append('')
+                nList.append('')
+                nList.append('')
+                nList.append('')
+                nList.append('')
+        else:
+            while len(nList) < (self.rows + 1) * self.cols:
+                nList.append('')
+                nList.append('')
+                nList.append('')
 
         table = session.Table('highscores')
         try:
@@ -321,7 +326,7 @@ class Leaderboard(object):
         #    label = font.render('Global Leaderboard',1,line)
         #else:
         #    label = font.render('Friend Leaderboard', 1, line)
-        ##self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
+        #self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
         #pygame.draw.rect(self.grid.screen,line, (self.x, self.y -30,self.width, 30), 1)
 
         self.grid.startx,self.grid.starty = self.x,self.y

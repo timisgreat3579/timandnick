@@ -2,7 +2,7 @@ import pygame,os,pygame.gfxdraw,sys,os.path
 from random import randint,randrange
 from .loading_screen import buffer,session_var,user_login
 from .leaderboard import Leaderboard
-from .server_data import get_players,get_table_data,accept_friend_request,decline_friend_request,send_friend_request,remove_friend
+from .server_data import get_players,get_table_data,accept_friend_request,decline_friend_request,send_friend_request,remove_friend,get_game_data
 
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -180,6 +180,7 @@ class launcher():
         self.frame_selected = None
         self.game_screen = None
         self.leaderb_menu = None
+        self.prevgame_screen = None
         self.fr_menu = None
         self.top_bar = surface_object(self.w,self.h/8,0,0,DDGREY)
         self.enlarge = False
@@ -246,6 +247,8 @@ class launcher():
                     i.update()
         if isinstance(self.frame_selected,profile_screen):
             self.frame_selected.check_buttons()
+            if self.frame_selected.back_button.on_mouse_click():
+                self.frame_selected = self.profile_menu
         if isinstance(self.frame_selected,library_screen) and self.game_screen is not None:
             game_directory = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
             game_directory = os.path.abspath(os.path.join(game_directory, '../Games/'+self.game_screen.name))
@@ -312,6 +315,15 @@ class launcher():
                 if x is not None:
                     if x.scroll_bar.on_mouse_hover():
                         x.scroll_y = pygame.mouse.get_pos()[1]
+        if isinstance(self.frame_selected,community_screen):
+            if self.frame_selected.scroll_bar.on_mouse_hover():
+                if event == pygame.MOUSEBUTTONDOWN:
+                    self.frame_selected.scrolling = True
+                    self.frame_selected.scroll_y = pygame.mouse.get_pos()[1]
+                else:
+                    self.frame_selected.scrolling = False
+            else:
+                self.frame_selected.scrolling = False
         if self.friends_open:
             if self.friends_window.game_buttons.frames[0] == self.friends_window.current_window:
                 if self.friends_window.current_window.scroll_bar.on_mouse_hover():
@@ -353,6 +365,52 @@ class main_frame():
     def draw(self,surface):
         surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
         
+class community_screen(main_frame):
+    def __init__(self,parent):
+        super().__init__(parent)
+        self.search_text = []
+        self.player_buttons = []
+        self.clicked_player = None
+        self.scrolling = False
+        self.search_bg = surface_object(self.w/2,50,(self.display_screen.w-self.w/2)/2,self.display_screen.h/20,DDGREY)
+        self.text = draw_text('SEARCH:',30,True,WHITE)
+        self.players_box = surface_object(self.w/2,self.h/1.2,(self.display_screen.w-self.w/2)/2,self.display_screen.h/7,DDGREY)
+        self.refresh_button = button(self.display_screen,'FIND',startpos = (self.search_bg.x + self.search_bg.w-105,self.display_screen.h/5),size=(100,40),color=DGREY)
+        self.update_buttons()
+    def draw(self,surface):
+        if self.scrolling:
+            self.scroll_bar.y = (self.players_box.h-self.scroll_bar_frame.h)/2 + self.players_box.y + self.display_screen.y + self.current -(self.scroll_y - pygame.mouse.get_pos()[1])
+        else:
+            self.current = self.scroll_bar.y - (self.players_box.y + self.scroll_bar_frame.y)
+        if self.scroll_bar.y < self.players_box.y + self.scroll_bar_frame.y + 39: 
+            self.scroll_bar.y  = self.players_box.y + self.scroll_bar_frame.y +39
+        elif self.scroll_bar.y > self.players_box.y + self.scroll_bar_frame.y + (self.scroll_bar_frame.h-self.scroll_bar.h)+ 39:
+            self.scroll_bar.y  = self.players_box.y + self.scroll_bar_frame.y + (self.scroll_bar_frame.h-self.scroll_bar.h)+ 39
+        self.c_text = draw_text(''.join(self.search_text),30,False,WHITE)
+        self.players_box.surface.blit(surface_object(self.players_box.w,self.players_box.h,0,0,DDGREY).surface,(0,0))
+        for i,x in enumerate(self.player_buttons):
+            x.x,x.y=10,210+((i)*110+10)-self.scroll_bar.y
+            x.surface.x,x.surface.y=self.players_box.x + 10,self.players_box.y + self.display_screen.y+ 210+((i)*110+10)-self.scroll_bar.y
+            x.draw(self.players_box.surface)
+        self.players_box.surface.blit(self.scroll_bar_frame.surface,(self.players_box.w/4*3.8,(self.players_box.h-self.scroll_bar_frame.h)/2))
+        self.display_screen.surface.blit(self.players_box.surface,(self.players_box.x,self.players_box.y))
+        self.display_screen.surface.blit(self.search_bg.surface,(self.search_bg.x,self.search_bg.y))
+        surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
+        surface.blit(self.text.surface,(self.search_bg.x+10,self.display_screen.h/5))
+        surface.blit(self.c_text.surface,(self.search_bg.x+150,self.display_screen.h/5))
+        self.refresh_button.draw(surface)
+        surface.blit(self.scroll_bar.surface,(self.scroll_bar.x,self.scroll_bar.y))
+    def update_buttons(self):
+        self.player_buttons = []
+        for i,x in enumerate(get_players(''.join(self.search_text))):
+            self.player_buttons.append(button(self.players_box.surface,x,center='LEFT',bold=True,font_size=40,color = DGREY
+                                              ,startpos=(self.search_bg.x+10,self.display_screen.h/3.5+((i)*110+10)),size=(self.w/2.2,100),user=x))
+        self.scroll_bar_size = self.scroll_bar_frame.h / ((len(self.player_buttons))*110+10) 
+        if self.scroll_bar_size > 1:
+            self.scroll_bar_size = 1
+        self.scroll_bar = surface_object(self.scroll_bar_frame.w,self.scroll_bar_frame.h*self.scroll_bar_size,self.players_box.w/4*3.8 + self.players_box.x,self.display_screen.y +self.players_box.y + self.scroll_bar_frame.y,WHITE)
+
+
 class library_screen(main_frame):
     def __init__(self,parent):
         super().__init__(parent)
@@ -431,29 +489,129 @@ class profile_screen(main_frame):
     def __init__(self,parent,user,other_profile=False):
         super().__init__(parent)
         self.user = user
+        self.screen = None
+        self.move_val = 0
         self.other_profile = other_profile
+        self.playtime_texts = []
+        self.gamesplayed_texts = []
+        if not self.other_profile:
+            self.move_val = -33
+        self.games = ['quicktype','integerrecall','golf']
+        
         self.game_text = draw_text(user.upper(),30,True,WHITE)
         self.bg_title = surface_object(self.display_screen.w/1.2,50
                                        ,(self.display_screen.w-self.display_screen.w/1.2)/2,10,DDGREY)
+
+        self.total_hours_bg = surface_object(self.display_screen.w/3,50
+                                       ,self.display_screen.w/70,40,DDGREY)
+
+        self.total_games_bg = surface_object(self.display_screen.w/3,50
+                                       ,self.display_screen.w - self.display_screen.w/3,40,DDGREY)
+
+        self.playtimeg_bg = surface_object(self.display_screen.w/4.1,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+
+        self.gameplayed_bg = surface_object(self.display_screen.w/4.1,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+
+        self.scoretitle_bg = surface_object(self.display_screen.w/3,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+
+        self.game1_time_bg = surface_object(self.display_screen.w/4.1,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+        self.game2_time_bg = surface_object(self.display_screen.w/4.1,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+        self.game3_time_bg = surface_object(self.display_screen.w/4.1,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+
+
+        self.game1_played_bg = surface_object(self.display_screen.w/4.1,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+        self.game2_played_bg = surface_object(self.display_screen.w/4.1,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+        self.game3_played_bg = surface_object(self.display_screen.w/4.1,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+
+        self.game1_score_bg = surface_object(self.display_screen.w/3,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+        self.game2_score_bg = surface_object(self.display_screen.w/3,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+        self.game3_score_bg = surface_object(self.display_screen.w/3,35
+                                       ,self.display_screen.w/70,40,DDGREY)
+        
         self.back_button = button(self.display_screen,'<<<',startpos=(self.display_screen.w/70,self.display_screen.y+30),size=(self.display_screen.w/15,50),font_size =30,text_color=WHITE,bold=True)
         self.add_friend_button = button(self.display_screen,'+ ADD',startpos=(self.display_screen.w/12,self.display_screen.y+83),size=(self.display_screen.w/10,50),font_size =22,text_color=WHITE,bold=True)
         self.message_button = button(self.display_screen,'MESSAGE',startpos=(self.display_screen.w/5.4,self.display_screen.y+83),size=(self.display_screen.w/10,50),font_size =22,text_color=DDWHITE,bold=True)
         self.refresh_button = button(self.display_screen,'REFRESH',startpos = ((self.display_screen.w-200)/2
                                                                                ,self.display_screen.h+27)
                                      ,size=(200,50))
+
+        self.refresh_profile()
+        self.total_playtext = draw_text('TOTAL PLAYTIME: ' +str(self.total_playtime) + ' hours',25,True,WHITE)
+        self.total_gametext = draw_text('TOTAL GAMES PLAYED: ' +str(self.total_games),25,True,WHITE)
+
+        self.playtime_avg = draw_text('GAME PLAYTIME RANKING',20,False,WHITE)
+        self.globalscore_avg = draw_text('SCORE VS GLOBAL AVERAGE',20,False,WHITE)
+        self.gamesplayed_avg = draw_text('GAMES PLAYED RANKING',20,False,WHITE)
+        #self.playtime_texts.append(draw_text("{0:.<20} {1:.>20}".format(str((i+1))+'. '+x[0].upper()+':', str(x[1])+ ' h'),20,False,WHITE))
+        for i,x in enumerate(self.ranking_playtime):
+            self.playtime_texts.append(draw_text(str((i+1))+'. '+x[0].upper() + ' -- ' + str(x[1]) +' hours',20,False,WHITE))
+        for i,x in enumerate(self.ranking_gamesplayed):
+            self.gamesplayed_texts.append(draw_text(str((i+1))+'. '+x[0].upper() + ' -- ' + str(x[1]) +' games',20,False,WHITE))
     def draw(self,surface):
-        self.friends = get_table_data('friends')
-        self.requests = get_table_data('friends')
-        if self.other_profile:
-            if self.user in self.friends:
-                self.add_friend_button.text = 'UNFRIEND'
-                self.add_friend_button.text_color = DDWHITE
-            elif self.user in self.requests:
-                self.add_friend_button.text = 'SENT'
-                self.add_friend_button.text_color = DDWHITE
         self.display_screen.surface.blit(self.bg_title.surface
                                          ,((self.display_screen.w-self.display_screen.w/1.2)/2,30))
+        self.display_screen.surface.blit(self.total_hours_bg.surface
+                                         ,((self.display_screen.w-self.display_screen.w/1.2)/2,136+self.move_val))
+        self.display_screen.surface.blit(self.total_games_bg.surface
+                                         ,(self.display_screen.w - self.display_screen.w/2.4,136+self.move_val))
+        
         self.display_screen.surface.blit(self.game_text.surface,(self.display_screen.w/10,34))
+
+        self.display_screen.surface.blit(self.total_playtext.surface,(self.display_screen.w/9,143+self.move_val))
+        self.display_screen.surface.blit(self.total_gametext.surface,(self.display_screen.w - self.display_screen.w/2.7,143+self.move_val))
+
+        self.display_screen.surface.blit(self.playtimeg_bg.surface
+                                         ,((self.display_screen.w-self.display_screen.w/1.2)/2,210+self.move_val))
+        
+
+        self.display_screen.surface.blit(self.game1_time_bg.surface
+                                         ,((self.display_screen.w-self.display_screen.w/1.2)/2,255+self.move_val))
+        self.display_screen.surface.blit(self.game2_time_bg.surface
+                                         ,((self.display_screen.w-self.display_screen.w/1.2)/2,305+self.move_val))
+        self.display_screen.surface.blit(self.game3_time_bg.surface
+                                         ,((self.display_screen.w-self.display_screen.w/1.2)/2,355+self.move_val))
+
+        self.display_screen.surface.blit(self.game1_played_bg.surface
+                                         ,(self.display_screen.w - self.display_screen.w/3.05,255+self.move_val))
+        self.display_screen.surface.blit(self.game2_played_bg.surface
+                                         ,(self.display_screen.w - self.display_screen.w/3.05,305+self.move_val))
+        self.display_screen.surface.blit(self.game3_played_bg.surface
+                                         ,(self.display_screen.w - self.display_screen.w/3.05,355+self.move_val))
+
+        self.display_screen.surface.blit(self.game1_score_bg.surface
+                                         ,(self.display_screen.w - self.display_screen.w/1.5,255+self.move_val))
+        self.display_screen.surface.blit(self.game2_score_bg.surface
+                                         ,(self.display_screen.w - self.display_screen.w/1.5,305+self.move_val))
+        self.display_screen.surface.blit(self.game3_score_bg.surface
+                                         ,(self.display_screen.w - self.display_screen.w/1.5,355+self.move_val))        
+
+        self.display_screen.surface.blit(self.scoretitle_bg.surface
+                                         ,(self.display_screen.w - self.display_screen.w/1.5,210+self.move_val))
+
+        self.display_screen.surface.blit(self.gameplayed_bg.surface
+                                         ,(self.display_screen.w - self.display_screen.w/3.05,210+self.move_val))
+        self.display_screen.surface.blit(self.playtime_avg.surface,(self.display_screen.w/9,215+self.move_val))
+        self.display_screen.surface.blit(self.globalscore_avg.surface,(self.display_screen.w/2.5,215+self.move_val))
+        self.display_screen.surface.blit(self.gamesplayed_avg.surface,(self.display_screen.w/1.42,215+self.move_val))
+        for i,x in enumerate(self.playtime_texts):
+            self.display_screen.surface.blit(x.surface,(self.display_screen.w/11,260+self.move_val+(i*50)))
+
+        for i,x in enumerate(self.gamesplayed_texts):
+            self.display_screen.surface.blit(x.surface,(self.display_screen.w - self.display_screen.w/3.15,260+self.move_val+(i*50)))
+        
+        
+
         surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
         self.refresh_button.draw(surface)
         if self.other_profile:
@@ -463,44 +621,58 @@ class profile_screen(main_frame):
                 self.message_button.draw(surface)
 
         
+    def refresh_profile(self):
+        self.friends = get_table_data('friends')
+        self.requests = get_table_data('requests')
+        self.total_playtime = self.get_total_hours()
+        self.total_games = self.get_total_games()
+        self.ranking_playtime = self.get_playtime_ranking()
+        self.ranking_gamesplayed = self.get_gamesplayed_ranking()
+        if self.other_profile:
+            if self.user in self.friends:
+                self.add_friend_button.text = 'UNFRIEND'
+                self.add_friend_button.text_color = DDWHITE
+            elif self.user in self.requests:
+                self.add_friend_button.text = 'SENT'
+                self.add_friend_button.text_color = DDWHITE
+        self.display_screen.surface.blit(surface_object(self.display_screen.w,self.display_screen.h,0,0,DGREY).surface,(0,0))
+    def get_total_hours(self):
+        mins=0
+        for x in self.games:
+            mins += get_game_data(x,'playtime',self.user)
+        return round(mins/60,2)
 
+    def get_total_games(self):
+        amt=0
+        for x in self.games:
+            amt += get_game_data(x,'games_played',self.user)
+        return amt
+
+    def get_playtime_ranking(self):
+        ranking = []
+        for x in self.games:
+            ranking.append((x,float(round(get_game_data(x,'playtime',self.user)/60,2))))
+        return sorted(ranking, key=lambda tup:tup[1],reverse=True)
+
+    def get_gamesplayed_ranking(self):
+        ranking = []
+        for x in self.games:
+            ranking.append((x,get_game_data(x,'games_played',self.user)))
+        return sorted(ranking, key=lambda tup:tup[1],reverse=True)
+    
     def check_buttons(self):
         if self.other_profile:
             if self.add_friend_button.on_mouse_click() and not self.friends and not self.user in self.requests:
                 send_friend_request(self.user)
+                self.refresh_profile()
             elif self.add_friend_button.on_mouse_click() and self.user in self.friends:
                 remove_friend(self.user)
+                self.refresh_profile()
+        if self.refresh_button.on_mouse_click():
+            self.refresh_profile()
                 
 
-class community_screen(main_frame):
-    def __init__(self,parent):
-        super().__init__(parent)
-        self.search_text = []
-        self.player_buttons = []
-        self.clicked_player = None
-        self.search_bg = surface_object(self.w/2,50,(self.display_screen.w-self.w/2)/2,self.display_screen.h/20,DDGREY)
-        self.text = draw_text('SEARCH:',30,True,WHITE)
-        self.players_box = surface_object(self.w/2,self.h/1.2,(self.display_screen.w-self.w/2)/2,self.display_screen.h/7,DDGREY)
-        self.refresh_button = button(self.display_screen,'FIND',startpos = (self.search_bg.x + self.search_bg.w-105,self.display_screen.h/5),size=(100,40),color=DGREY)
-    def draw(self,surface):
-        
-        self.c_text = draw_text(''.join(self.search_text),30,False,WHITE)
-        self.players_box.surface.blit(surface_object(self.players_box.w,self.players_box.h,0,0,DDGREY).surface,(0,0))
-        for i,x in enumerate(self.player_buttons):
-            x.x,x.y=10,((i)*110+10)
-            x.draw(self.players_box.surface)
-        self.players_box.surface.blit(self.scroll_bar_frame.surface,(self.players_box.w/4*3.8,(self.players_box.h-self.scroll_bar_frame.h)/2))
-        self.display_screen.surface.blit(self.players_box.surface,(self.players_box.x,self.players_box.y))
-        self.display_screen.surface.blit(self.search_bg.surface,(self.search_bg.x,self.search_bg.y))
-        surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
-        surface.blit(self.text.surface,(self.search_bg.x+10,self.display_screen.h/5))
-        surface.blit(self.c_text.surface,(self.search_bg.x+150,self.display_screen.h/5))
-        self.refresh_button.draw(surface)
-    def update_buttons(self):
-        self.player_buttons = []
-        for i,x in enumerate(get_players(''.join(self.search_text))):
-            self.player_buttons.append(button(self.players_box.surface,x,center='LEFT',bold=True,font_size=40,color = DGREY
-                                              ,startpos=(self.search_bg.x+10,self.display_screen.h/3.5+((i)*110+10)),size=(self.w/2.2,100),user=x))
+
             
 class stats_screen(main_frame):
     def __init__(self,parent):

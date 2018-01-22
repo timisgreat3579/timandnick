@@ -28,6 +28,12 @@ def get_table_data(data):
     if user_login in names: names.remove(user_login)
     return names
 
+def get_game_data(game,data_type,target_user):
+    game_table = session.Table(data_type)
+    response = game_table.query(KeyConditionExpression=Key('peopleid').eq(target_user))
+    for i in response['Items']: names = i[game]
+    return names 
+
 def accept_friend_request(friend):
     response = people_table.get_item(
         Key={

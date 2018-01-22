@@ -264,7 +264,8 @@ class registerWindow(object):
                 'email': self.email,
                 'code': 0, #change this to 'code' to set up email validation !!!!!!
                 'datetime':str(datetime.now()),
-                'friends':[self.user]
+                'friends':[self.user],
+                'requests':[]
                 }
         )
         tabl = session.Table('highscores')

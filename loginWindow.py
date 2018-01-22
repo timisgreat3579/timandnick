@@ -88,6 +88,7 @@ class loginWindow(object):
 
     #Once the submit button is clicked then this will be called
     def getValues(self, x=0):
+        global currentUser
         self.user = self.e1.get() 
         self.passw = self.e.get()
 
@@ -129,7 +130,7 @@ class loginWindow(object):
                          )
 
                 else:
-                    messagebox.showinfo('Suucesful Login', 'This is to notify you of a succesful login')
+                    #messagebox.showinfo('Suucesful Login', 'This is to notify you of a succesful login')
                     currentUser = self.user
                     #Destroy the window once they sign in
                     self.top.destroy()
@@ -257,6 +258,8 @@ class registerWindow(object):
 
 
     def addToTable(self, code=0):
+        global currentUser
+        currentUser = self.user
         respons = table.put_item(
            Item={
                 'peopleid': self.user,
@@ -436,7 +439,7 @@ def runLogin():
     win = loginWindow(window)
     mainloop()
 
-    return win.user
+    return currentUser
 
 
 def runCreate():
